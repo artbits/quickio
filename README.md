@@ -136,8 +136,8 @@ List<Book> books2 = QuickIO.find(Book.class, id1, id2, id3, id4);
 List<Book> books3 = QuickIO.find(Book.class, options -> options.$eq("name", "C Primer Plus"));
 
 //For complex queries, use custom functions to find Java beans of Book type, 
-// and return true to indicate that they meet the conditions, 
-// and return false to indicate that they do not meet the conditions.
+//and return true to indicate that they meet the conditions, 
+//and return false to indicate that they do not meet the conditions.
 List<Book> books4 = QuickIO.findCustom(Book.class, book -> {
     boolean b1 = "C Primer Plus".equals(book.getName());
     boolean b2 = "Stephen Prata".equals(book.getAuthor());
