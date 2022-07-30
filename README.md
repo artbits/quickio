@@ -13,21 +13,21 @@ repositories {
 }
 
 dependencies {
-	implementation 'com.github.artbits:quickio:0.0.2'
+    implementation 'com.github.artbits:quickio:0.0.2'
 }
 ```
 
 Maven:
 ```xml
 <repository>
-	<id>jitpack.io</id>
-	<url>https://www.jitpack.io</url>
+    <id>jitpack.io</id>
+    <url>https://www.jitpack.io</url>
 </repository>
 
 <dependency>
-	<groupId>com.github.artbits</groupId>
-	<artifactId>quickio</artifactId>
-	<version>0.0.2</version>
+    <groupId>com.github.artbits</groupId>
+    <artifactId>quickio</artifactId>
+    <version>0.0.2</version>
 </dependency>
 ```
 
