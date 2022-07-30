@@ -114,28 +114,28 @@ QuickIO.delete(Book.class, options -> {
 
 + Find Java bean.
 ```java
-//Find the first java bean of type book.
+//Find the first java bean of Book type.
 Book book1 = QuickIO.findFirst(Book.class);
 
-//Find the last java bean of type book.
+//Find the last java bean of Book type.
 Book book2 = QuickIO.findLast(Book.class);
 
-//Find the java bean of book type with the specified ID.
+//Find the java bean of Book type with the specified ID.
 Book book3 = QuickIO.find(Book.class, 1001657291650502656L);
 
-//Find the first java bean of book type by criteria.
+//Find the first java bean of Book type by criteria.
 Book book4 = QuickIO.findOne(Book.class, options -> options.$eq("name", "C Primer Plus"));
 
-//Find all Java beans of book type.
+//Find all Java beans of Book type.
 List<Book> books1 = QuickIO.find(Book.class);
 
-//Batch find Java beans of book type by ID.
+//Batch find Java beans of Book type by ID.
 List<Book> books2 = QuickIO.find(Book.class, id1, id2, id3, id4);
 
-//Batch find Java beans of book type by conditions.
+//Batch find Java beans of Book type by conditions.
 List<Book> books3 = QuickIO.find(Book.class, options -> options.$eq("name", "C Primer Plus"));
 
-//For complex queries, use custom functions to find Java beans of book type, 
+//For complex queries, use custom functions to find Java beans of Book type, 
 // and return true to indicate that they meet the conditions, 
 // and return false to indicate that they do not meet the conditions.
 List<Book> books4 = QuickIO.findCustom(Book.class, book -> "C Primer Plus".equals(book.getName()) 
