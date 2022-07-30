@@ -50,8 +50,8 @@ public final class QuickIO {
         return Operator.find(tClass, consumer);
     }
 
-    public static <T> List<T> find(Class<T> tClass, Predicate<T> predicate) {
-        return Operator.find(tClass, predicate);
+    public static <T> List<T> findCustom(Class<T> tClass, Predicate<T> predicate) {
+        return Operator.findCustom(tClass, predicate);
     }
 
     public static <T> List<T> find(Class<T> tClass, long... ids) {

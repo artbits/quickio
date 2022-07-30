@@ -9,14 +9,12 @@ import java.util.function.Predicate;
 
 final class Operator {
 
-
     static void save(IObject o) {
         o.setId((o.id() == 0 || Tools.getDigit(o.id()) < 18) ? Snowflake.nextId() : o.id());
         if (!DBHelper.put(Tools.asByteArray(o.id()),  Tools.asByteArray(o))) {
             o.setId(0);
         }
     }
-
 
     static <T> void save(List<T> list) {
         DBHelper.writeBatch(batch -> list.forEach(t -> {
@@ -25,7 +23,6 @@ final class Operator {
             batch.put(Tools.asByteArray(o.id()), Tools.asByteArray(o));
         }));
     }
-
 
     static void update(IObject o, Consumer<Options> consumer) {
         Options options = Options.getInstance();
@@ -52,11 +49,9 @@ final class Operator {
         });
     }
 
-
     static boolean delete(long id) {
         return DBHelper.delete(Tools.asByteArray(id));
     }
-
 
     static <T> void delete(Class<T> tClass, Consumer<Options> consumer) {
         Options options = Options.getInstance();
@@ -72,7 +67,6 @@ final class Operator {
         }));
     }
 
-
     static <T> T findFirst(Class<T> tClass) {
         final long[] minKey = {Long.MAX_VALUE};
         final byte[][] firstValue = new byte[1][];
@@ -86,7 +80,6 @@ final class Operator {
         });
         return Tools.asObject(firstValue[0], tClass);
     }
-
 
     static <T> T findLast(Class<T> tClass) {
         final long[] maxKey = {Long.MIN_VALUE};
@@ -102,11 +95,10 @@ final class Operator {
         return Tools.asObject(lastValue[0], tClass);
     }
 
-
     static <T> T findOne(Class<T> tClass, Consumer<Options> consumer) {
         Options options = Options.getInstance();
         consumer.accept(options);
-        return DBHelper.iteration((BiFunction<byte[], byte[], T>) (key, value) -> {
+        return DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
             if (data != null && data.getModel().equals(tClass.getName())) {
                 T t = Tools.asObject(value, tClass);
@@ -118,7 +110,6 @@ final class Operator {
         });
     }
 
-
     static <T> List<T> find(Class<T> tClass) {
         List<T> list = new ArrayList<>();
         DBHelper.iteration((key, value) -> {
@@ -129,7 +120,6 @@ final class Operator {
         });
         return list;
     }
-
 
     static <T> List<T> find(Class<T> tClass, Consumer<Options> consumer) {
         Options options = Options.getInstance();
@@ -150,8 +140,7 @@ final class Operator {
         return list;
     }
 
-
-    static <T> List<T> find(Class<T> tClass, Predicate<T> predicate) {
+    static <T> List<T> findCustom(Class<T> tClass, Predicate<T> predicate) {
         List<T> list = new ArrayList<>();
         DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
@@ -165,7 +154,6 @@ final class Operator {
         return list;
     }
 
-
     static <T> List<T> find(Class<T> tClass, long... ids) {
         List<T> list = new ArrayList<>();
         for (long id : ids) {
@@ -176,12 +164,10 @@ final class Operator {
         return list;
     }
 
-
     static <T> T find(Class<T> tClass, long id) {
         byte[] key = Tools.asByteArray(id);
         byte[] value = DBHelper.get(key);
         return (value != null) ? Tools.asObject(value, tClass) : null;
     }
-
 
 }
