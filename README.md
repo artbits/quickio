@@ -138,8 +138,12 @@ List<Book> books3 = QuickIO.find(Book.class, options -> options.$eq("name", "C P
 //For complex queries, use custom functions to find Java beans of Book type, 
 // and return true to indicate that they meet the conditions, 
 // and return false to indicate that they do not meet the conditions.
-List<Book> books4 = QuickIO.findCustom(Book.class, book -> "C Primer Plus".equals(book.getName()) 
-        || book.getPrice() > 25);
+List<Book> books4 = QuickIO.findCustom(Book.class, book -> {
+    boolean b1 = "C Primer Plus".equals(book.getName());
+    boolean b2 = "Stephen Prata".equals(book.getAuthor());
+    boolean b3 = book.getPrice() >= 25;
+    return (b1 || b2) && b3;
+});
 ```
 
 + Function description of the **Options** class.
