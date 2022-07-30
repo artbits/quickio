@@ -2,7 +2,7 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 
 
-Quickio is a Java library designed based on leveldb embedded database. It can quickly store or read Java beans in disk, zero configuration, fast and efficient.
+QuickIO is a Java library designed based on LevelDB embedded database. It can quickly store or read Java beans in disk, zero configuration, fast and efficient.
 
 
 ## Download
@@ -138,8 +138,7 @@ List<Book> books3 = QuickIO.find(Book.class, options -> options.$eq("name", "C P
 //For complex queries, use custom functions to find Java beans of book type, 
 // and return true to indicate that they meet the conditions, 
 // and return false to indicate that they do not meet the conditions.
-List<Book> books4 = QuickIO.findCustom(Book.class, book -> "C Primer Plus".equals(book.getName()) 
-        || book.getPrice() > 25);
+List<Book> books4 = QuickIO.findCustom(Book.class, book -> book.getPrice() < 25 && book.getPrice() <= 100);
 ```
 
 + Function description of the **Options** class.
