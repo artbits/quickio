@@ -33,7 +33,7 @@ Maven:
 
 
 ## How do I use QuickIO?
-1. You must initialize before using quickio.
+1. You must initialize before using QuickIO.
 ```java
 QuickIO.init();
 ```
@@ -138,7 +138,8 @@ List<Book> books3 = QuickIO.find(Book.class, options -> options.$eq("name", "C P
 //For complex queries, use custom functions to find Java beans of book type, 
 // and return true to indicate that they meet the conditions, 
 // and return false to indicate that they do not meet the conditions.
-List<Book> books4 = QuickIO.findCustom(Book.class, book -> "C Primer Plus".equals(book.getName()) || book.getPrice() > 25);
+List<Book> books4 = QuickIO.findCustom(Book.class, book -> "C Primer Plus".equals(book.getName()) 
+        || book.getPrice() > 25);
 ```
 
 + Function description of the **Options** class.
