@@ -2,48 +2,65 @@ package com.github.artbits.quickio;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 final class Operator {
 
     static void save(IObject o) {
-        o.setId((o.id() == 0 || Tools.getDigit(o.id()) < 18) ? Snowflake.nextId() : o.id());
+        o.id = (o.id() == 0 || Tools.getDigit(o.id()) < 18) ? Snowflake.nextId() : o.id();
         if (!DBHelper.put(Tools.asByteArray(o.id()),  Tools.asByteArray(o))) {
-            o.setId(0);
+            o.id = 0;
         }
     }
 
     static <T> void save(List<T> list) {
         DBHelper.writeBatch(batch -> list.forEach(t -> {
             IObject o = (IObject) t;
-            o.setId(o.id() == 0 ? Snowflake.nextId() : o.id());
+            o.id = o.id() == 0 ? Snowflake.nextId() : o.id();
             batch.put(Tools.asByteArray(o.id()), Tools.asByteArray(o));
         }));
     }
 
-    static void update(IObject o, Consumer<Options> consumer) {
-        Options options = Options.getInstance();
-        consumer.accept(options);
+    @SuppressWarnings("unchecked")
+    static <T> void update(T t , Predicate<T> predicate) {
+        Map<String, Object> tMap = new HashMap<>();
+        for (Field field : t.getClass().getDeclaredFields()) {
+            try {
+                field.setAccessible(true);
+                if (field.getName().equals("id")) {
+                    continue;
+                }
+                Object obj = field.get(t);
+                if (obj != null) {
+                    tMap.put(field.getName(), obj);
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
         DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(o.getClass().getName())) {
-                IObject dbObject = Tools.asObject(value, o.getClass());
-                if (options.filter(dbObject)) {
-                    try {
-                        for (Field field : o.getClass().getDeclaredFields()) {
-                            if (field.get(o) != null) {
-                                Field dbField = dbObject.getClass().getDeclaredField(field.getName());
-                                dbField.setAccessible(true);
-                                dbField.set(dbObject, field.get(o));
+            if (data != null && Tools.equals(data.model, t.getClass().getSimpleName())) {
+                T dbT = Tools.getObject(data);
+                if (predicate.test(dbT)) {
+                    long id = 0;
+                    for (Map.Entry<String, Object> entry : tMap.entrySet()) {
+                        try {
+                            if (id == 0) {
+                                id = Tools.getIDField(dbT.getClass()).getLong(dbT);
                             }
+                            Field dbField = dbT.getClass().getDeclaredField(entry.getKey());
+                            dbField.setAccessible(true);
+                            dbField.set(dbT, entry.getValue());
+                        } catch (NoSuchFieldException | IllegalAccessException e) {
+                            throw new RuntimeException(e);
                         }
-                        DBHelper.put(Tools.asByteArray(dbObject.id()), Tools.asByteArray(dbObject));
-                    } catch (IllegalAccessException | NoSuchFieldException e) {
-                        throw new RuntimeException(e);
                     }
+                    DBHelper.put(Tools.asByteArray(id), Tools.asByteArray(dbT));
                 }
             }
         });
@@ -53,14 +70,29 @@ final class Operator {
         return DBHelper.delete(Tools.asByteArray(id));
     }
 
-    static <T> void delete(Class<T> tClass, Consumer<Options> consumer) {
-        Options options = Options.getInstance();
-        consumer.accept(options);
+    static void delete(long... ids) {
+        DBHelper.writeBatch(batch -> {
+            for (long id : ids) {
+                batch.delete(Tools.asByteArray(id));
+            }
+        });
+    }
+
+    static <T> void delete(Class<T> tClass) {
         DBHelper.writeBatch(batch -> DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName())) {
-                T t = Tools.asObject(value, tClass);
-                if (options.filter(t)) {
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                batch.delete(key);
+            }
+        }));
+    }
+
+    static <T> void delete(Class<T> tClass, Predicate<T> predicate) {
+        DBHelper.writeBatch(batch -> DBHelper.iteration((key, value) -> {
+            Data data = Tools.asData(value);
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                T t = Tools.getObject(data);
+                if (predicate.test(t)) {
                     batch.delete(key);
                 }
             }
@@ -73,7 +105,7 @@ final class Operator {
         DBHelper.iteration((key, value) -> {
             long tKey = Tools.asLong(key);
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName()) && (tKey < minKey[0])) {
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName()) && (tKey < minKey[0])) {
                 minKey[0] = tKey;
                 firstValue[0] = value;
             }
@@ -87,7 +119,7 @@ final class Operator {
         DBHelper.iteration((key, value) -> {
             long tKey = Tools.asLong(key);
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName()) && (tKey > maxKey[0])) {
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName()) && (tKey > maxKey[0])) {
                 maxKey[0] = tKey;
                 lastValue[0] = value;
             }
@@ -95,14 +127,12 @@ final class Operator {
         return Tools.asObject(lastValue[0], tClass);
     }
 
-    static <T> T findOne(Class<T> tClass, Consumer<Options> consumer) {
-        Options options = Options.getInstance();
-        consumer.accept(options);
+    static <T> T findOne(Class<T> tClass, Predicate<T> predicate) {
         return DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName())) {
-                T t = Tools.asObject(value, tClass);
-                if (options.filter(t)) {
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                T t = Tools.getObject(data);
+                if (predicate.test(t)) {
                     return t;
                 }
             }
@@ -114,23 +144,40 @@ final class Operator {
         List<T> list = new ArrayList<>();
         DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName())) {
-                list.add(Tools.asObject(value, tClass));
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                T t = Tools.getObject(data);
+                list.add(t);
             }
         });
         return list;
     }
 
-    static <T> List<T> find(Class<T> tClass, Consumer<Options> consumer) {
-        Options options = Options.getInstance();
+    static <T> List<T> find(Class<T> tClass, Predicate<T> predicate) {
+        List<T> list = new ArrayList<>();
+        DBHelper.iteration((key, value) -> {
+            Data data = Tools.asData(value);
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                T t = Tools.getObject(data);
+                if (predicate.test(t)) {
+                    list.add(t);
+                }
+            }
+        });
+        return list;
+    }
+
+    static <T> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<Options> consumer) {
+        Options options = new Options();
         consumer.accept(options);
         List<T> list = new ArrayList<>();
         List<T> finalList = list;
         DBHelper.iteration((key, value) -> {
             Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName())) {
-                T t = Tools.asObject(value, tClass);
-                if (options.filter(t)) {
+            if (data != null && Tools.equals(data.model, tClass.getSimpleName())) {
+                T t = Tools.getObject(data);
+                if (predicate == null) {
+                    finalList.add(t);
+                } else if (predicate.test(t)) {
                     finalList.add(t);
                 }
             }
@@ -140,26 +187,13 @@ final class Operator {
         return list;
     }
 
-    static <T> List<T> findCustom(Class<T> tClass, Predicate<T> predicate) {
-        List<T> list = new ArrayList<>();
-        DBHelper.iteration((key, value) -> {
-            Data data = Tools.asData(value);
-            if (data != null && data.getModel().equals(tClass.getName())) {
-                T t = Tools.asObject(value, tClass);
-                if (predicate.test(t)) {
-                    list.add(t);
-                }
-            }
-        });
-        return list;
-    }
-
     static <T> List<T> find(Class<T> tClass, long... ids) {
         List<T> list = new ArrayList<>();
         for (long id : ids) {
             byte[] key = Tools.asByteArray(id);
             byte[] value = DBHelper.get(key);
-            list.add((value != null) ? Tools.asObject(value, tClass) : null);
+            T t = (value != null) ? Tools.asObject(value, tClass) : null;
+            list.add(t);
         }
         return list;
     }

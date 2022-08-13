@@ -4,20 +4,12 @@ import java.io.Serializable;
 
 final class Data implements Serializable {
 
-    private final String model;
-    private final Object object;
+    String model;
+    Object object;
 
     Data(Object object) {
-        model = object.getClass().getName();
+        model = object.getClass().getSimpleName();
         this.object = object;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public Object getObject() {
-        return object;
     }
 
 }

@@ -156,4 +156,12 @@ final class Snowflake {
         return snowflake.nextID();
     }
 
+    static long timestamp(long snowId) {
+        String id = Long.toBinaryString(snowId);
+        long timestamp = id.length() - (snowflake.workerIdBits +
+                snowflake.datacenterIdBits + snowflake.sequenceBits);
+        String s = id.substring(0, (int) timestamp);
+        return Long.parseUnsignedLong(s, 2) + snowflake.epoch;
+    }
+
 }
