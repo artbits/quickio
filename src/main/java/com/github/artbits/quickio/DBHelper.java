@@ -16,22 +16,32 @@ final class DBHelper {
     private static DB db;
 
     static void init() {
+        init(null);
+    }
+
+    static void init(String path) {
+        Tools.defer(DBHelper::destroy);
         try {
             DBFactory factory = new Iq80DBFactory();
             org.iq80.leveldb.Options options = new org.iq80.leveldb.Options();
             options.cacheSize(100 * 1024 * 1024);
             options.createIfMissing(true);
-            db = factory.open(new File(DATABASE_NAME), options);
+            path = (path != null) ? path + "/" + DATABASE_NAME : DATABASE_NAME;
+            db = factory.open(new File(path), options);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
+    }
+
+    static void destroy() {
+        try {
+            if (db != null) {
                 db.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                db = null;
             }
-        }));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static boolean put(byte[] key, byte[] value) {

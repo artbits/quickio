@@ -4,25 +4,14 @@ import java.io.Serializable;
 
 public class IObject implements Serializable {
 
-    private long id;
+    long id;
 
-    public long id() {
+    public final long id() {
         return id;
     }
 
-    void setId(long id) {
-        this.id = id;
-    }
-
-    public void save() {
-        Operator.save(this);
-    }
-
-    public boolean delete() {
-        if (id != 0) {
-            return Operator.delete(id);
-        }
-        return false;
+    public final long timestamp() {
+        return Snowflake.timestamp(id);
     }
 
 }

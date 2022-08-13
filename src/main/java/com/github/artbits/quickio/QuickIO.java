@@ -10,6 +10,14 @@ public final class QuickIO {
         DBHelper.init();
     }
 
+    public static void init(String path) {
+        DBHelper.init(path);
+    }
+
+    public static void destroy() {
+        DBHelper.destroy();
+    }
+
     public static void save(IObject o) {
         Operator.save(o);
     }
@@ -18,16 +26,24 @@ public final class QuickIO {
         Operator.save(list);
     }
 
-    public static void update(IObject o, Consumer<Options> consumer) {
-        Operator.update(o, consumer);
+    public static <T> void update(T t, Predicate<T> predicate) {
+        Operator.update(t, predicate);
     }
 
     public static boolean delete(long id) {
         return Operator.delete(id);
     }
 
-    public static <T> void delete(Class<T> tClass, Consumer<Options> consumer) {
-        Operator.delete(tClass, consumer);
+    public static void delete(long... ids) {
+        Operator.delete(ids);
+    }
+
+    public static <T> void delete(Class<T> tClass) {
+        Operator.delete(tClass);
+    }
+
+    public static <T> void delete(Class<T> tClass, Predicate<T> predicate) {
+        Operator.delete(tClass, predicate);
     }
 
     public static <T> T findFirst(Class<T> tClass) {
@@ -38,20 +54,20 @@ public final class QuickIO {
         return Operator.findLast(tClass);
     }
 
-    public static <T> T findOne(Class<T> tClass, Consumer<Options> consumer) {
-        return Operator.findOne(tClass, consumer);
+    public static <T> T findOne(Class<T> tClass, Predicate<T> predicate) {
+        return Operator.findOne(tClass, predicate);
     }
 
     public static <T> List<T> find(Class<T> tClass) {
         return Operator.find(tClass);
     }
 
-    public static <T> List<T> find(Class<T> tClass, Consumer<Options> consumer) {
-        return Operator.find(tClass, consumer);
+    public static <T> List<T> find(Class<T> tClass, Predicate<T> predicate) {
+        return Operator.find(tClass, predicate);
     }
 
-    public static <T> List<T> findCustom(Class<T> tClass, Predicate<T> predicate) {
-        return Operator.findCustom(tClass, predicate);
+    public static <T> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<Options> consumer) {
+        return Operator.find(tClass, predicate, consumer);
     }
 
     public static <T> List<T> find(Class<T> tClass, long... ids) {
