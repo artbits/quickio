@@ -3,6 +3,7 @@ package simple;
 import com.github.artbits.quickio.QuickIO;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -154,7 +155,7 @@ final class TestSimple {
 
     @Test
     void find_students_english_score_above_60_test() {
-        List<Score> scores = QuickIO.find(Score.class, score -> score.english >= 60);
+        List<Score> scores = QuickIO.find(Score.class, s -> s.english >= 60);
         scores.forEach(score -> {
             Student student = QuickIO.find(Student.class, score.studentId);
             System.out.println(student.name + "   " + score.maths);
@@ -219,7 +220,7 @@ final class TestSimple {
 
         QuickIO.delete(departmentIds);
 
-        QuickIO.find(Department.class).forEach(department -> System.out.println(department.name));
+        QuickIO.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
     @Test
