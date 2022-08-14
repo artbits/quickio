@@ -19,4 +19,5 @@ final class Score extends IObject {
     public String toString() {
         return String.format("language = %d  maths = %d  english = %d", language, maths, english);
     }
+
 }
