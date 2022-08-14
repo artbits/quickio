@@ -46,7 +46,7 @@ QuickIO.init("dir");
 QuickIO.destroy();
 ```
 
-### 2. Create a Java bean that needs to be stored or read, and *extends* the **IObject** class.
+### 2. Create a Java bean that needs to be stored or read, and *extends* the IObject class.
 ```java
 public class Book extends IObject {
 
@@ -81,6 +81,14 @@ System.out.println(book.timestamp());
 //Update the stored data according to the ID.
 book.setPrice(50.10f);
 QuickIO.save(book);
+
+//Batch save data.
+List<Book> books = new ArrayList<>();
+books.add(book);
+books.add(book);
+books.add(book);
+QuickIO.save(books);
+books.forEach(b -> System.out.println(b.id()));
 ```
 
 Update:
@@ -114,28 +122,28 @@ QuickIO.delete(Book.class, b -> "C Primer Plus".equals(b.getName()));
 
 Find:
 ```java
-//Find the first Java bean of type book.
+//Find the first Java bean of type Book.
 Book book1 = QuickIO.findFirst(Book.class);
 
-//Find the last Java bean of type book.
+//Find the last Java bean of type Book.
 Book book2 = QuickIO.findLast(Book.class);
 
-//Find the Java bean of book type with the specified ID.
-Book book3 = QuickIO.find(Book.class, 1001657291650502656L);
+//Find the first Java bean of Book type by criteria.
+Book book3 = QuickIO.findOne(Book.class, b -> "C Primer Plus".equals(b.getName()));
 
-//Find the first Java bean of book type by criteria.
-Book book4 = QuickIO.findOne(Book.class, b -> "C Primer Plus".equals(b.getName()));
+//Find the Java bean of Book type with the specified ID.
+Book book4 = QuickIO.find(Book.class, 1001657291650502656L);
 
-//Find all Java beans of book type.
+//Find all Java beans of Book type.
 List<Book> books1 = QuickIO.find(Book.class);
 
-//Batch find Java beans of book type by ID.
+//Batch find Java beans of Book type by ID.
 List<Book> books2 = QuickIO.find(Book.class, id1, id2, id3, id4);
 
-//Batch find Java beans of book type by conditions.
+//Batch find Java beans of Book type by conditions.
 List<Book> books3 = QuickIO.find(Book.class, b -> "C Primer Plus".equals(b.getName()));
 
-//Batch find Java beans of book type by conditions.
+//Batch find Java beans of Book type by conditions.
 //Sort, 1 is asc, and -1 is desc.
 //Can limit the quantity.
 List<Book> books4 = QuickIO.find(Book.class, b -> {
