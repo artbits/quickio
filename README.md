@@ -2,7 +2,7 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 
 
-QuickIO is a Java library designed based on LevelDB embedded database. It can quickly store or read Java beans in disk, zero configuration, fast and efficient.
+QuickIO is a Java library designed based on LevelDB embedded database. It can quickly read or write Java beans in disk, zero configuration, fast and efficient.
 
 
 ## Download
@@ -98,8 +98,8 @@ book.setPrice(249.99f);
 
 //Update data by condition.
 QuickIO.update(book, b -> {
-    boolean b1 = "C Primer Plus".equals(b.getName());
-    boolean b2 = "Stephen Prata".equals(b.getAuthor());
+    boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
+    boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
     return b1 && b2;
 });
 ```
@@ -117,7 +117,7 @@ QuickIO.delete(id1, id2, id3, id4);
 QuickIO.delete(Book.class);
 
 //Delete by condition.
-QuickIO.delete(Book.class, b -> "C Primer Plus".equals(b.getName()));
+QuickIO.delete(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 ```
 
 Find:
@@ -129,7 +129,7 @@ Book book1 = QuickIO.findFirst(Book.class);
 Book book2 = QuickIO.findLast(Book.class);
 
 //Find the first Java bean of Book type by criteria.
-Book book3 = QuickIO.findOne(Book.class, b -> "C Primer Plus".equals(b.getName()));
+Book book3 = QuickIO.findOne(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 
 //Find the Java bean of Book type with the specified ID.
 Book book4 = QuickIO.find(Book.class, 1001657291650502656L);
@@ -141,14 +141,14 @@ List<Book> books1 = QuickIO.find(Book.class);
 List<Book> books2 = QuickIO.find(Book.class, id1, id2, id3, id4);
 
 //Batch find Java beans of Book type by conditions.
-List<Book> books3 = QuickIO.find(Book.class, b -> "C Primer Plus".equals(b.getName()));
+List<Book> books3 = QuickIO.find(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 
 //Batch find Java beans of Book type by conditions.
 //Sort, 1 is asc, and -1 is desc.
 //Can limit the quantity.
 List<Book> books4 = QuickIO.find(Book.class, b -> {
-    boolean b1 = "C Primer Plus".equals(b.getName());
-    boolean b2 = "Stephen Prata".equals(b.getAuthor());
+    boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
+    boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
     return b1 && b2;
 }, options -> {
     options.sort("price", 1);
