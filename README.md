@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:0.0.3'
+    implementation 'com.github.artbits:quickio:0.0.4'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
