@@ -60,6 +60,12 @@ final class DBHelper {
             db.write(batch);
         } catch (DBException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                batch.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -82,24 +88,40 @@ final class DBHelper {
 
     static void iteration(BiConsumer<byte[], byte[]> consumer) {
         DBIterator iterator = db.iterator();
-        for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-            byte[] key = iterator.peekNext().getKey();
-            byte[] value = iterator.peekNext().getValue();
-            consumer.accept(key, value);
+        try {
+            for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] key = iterator.peekNext().getKey();
+                byte[] value = iterator.peekNext().getValue();
+                consumer.accept(key, value);
+            }
+        } finally {
+            try {
+                iterator.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     static <T> T iteration(BiFunction<byte[], byte[], T> function) {
         DBIterator iterator = db.iterator();
-        for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-            byte[] key = iterator.peekNext().getKey();
-            byte[] value = iterator.peekNext().getValue();
-            T t = function.apply(key, value);
-            if (t != null) {
-                return t;
+        try {
+            for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] key = iterator.peekNext().getKey();
+                byte[] value = iterator.peekNext().getValue();
+                T t = function.apply(key, value);
+                if (t != null) {
+                    return t;
+                }
+            }
+            return null;
+        } finally {
+            try {
+                iterator.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
-        return null;
     }
 
 }
