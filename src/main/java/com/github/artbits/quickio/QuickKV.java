@@ -3,7 +3,7 @@ package com.github.artbits.quickio;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-public class QuickKV extends IO {
+public final class QuickKV extends IO {
 
     QuickKV(String path) {
         super("data/kv/" + path);
