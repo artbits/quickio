@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 
 final class Score extends IObject {
 
-    long studentId;
-    int language;
-    int maths;
-    int english;
+    Long studentId;
+    Integer language;
+    Integer maths;
+    Integer english;
 
     Score(Consumer<Score> consumer) {
         consumer.accept(this);
