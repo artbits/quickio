@@ -9,31 +9,28 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-final class DBHelper {
+import static com.github.artbits.quickio.Tools.defer;
 
-    private final static String DATABASE_NAME = "database";
+class IO {
 
-    private static DB db;
+    private DB db;
 
-    static void init() {
-        init(null);
-    }
 
-    static void init(String path) {
-        Tools.defer(DBHelper::destroy);
+    IO(String path) {
+        defer(this::destroy);
         try {
             DBFactory factory = new Iq80DBFactory();
             org.iq80.leveldb.Options options = new org.iq80.leveldb.Options();
             options.cacheSize(100 * 1024 * 1024);
             options.createIfMissing(true);
-            path = (path != null) ? path + "/" + DATABASE_NAME : DATABASE_NAME;
             db = factory.open(new File(path), options);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static void destroy() {
+
+    void destroy() {
         try {
             if (db != null) {
                 db.close();
@@ -44,7 +41,8 @@ final class DBHelper {
         }
     }
 
-    static boolean put(byte[] key, byte[] value) {
+
+    boolean put(byte[] key, byte[] value) {
         try {
             db.put(key, value);
             return true;
@@ -53,7 +51,27 @@ final class DBHelper {
         }
     }
 
-    static void writeBatch(Consumer<WriteBatch> consumer) {
+
+    byte[] get(byte[] key) {
+        try {
+            return db.get(key);
+        } catch (DBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    boolean delete(byte[] key) {
+        try {
+            db.delete(key);
+            return true;
+        } catch (DBException e) {
+            return false;
+        }
+    }
+
+
+    void writeBatch(Consumer<WriteBatch> consumer) {
         WriteBatch batch = db.createWriteBatch();
         try {
             consumer.accept(batch);
@@ -69,24 +87,8 @@ final class DBHelper {
         }
     }
 
-    static byte[] get(byte[] key) {
-        try {
-            return db.get(key);
-        } catch (DBException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    static boolean delete(byte[] key) {
-        try {
-            db.delete(key);
-            return true;
-        } catch (DBException e) {
-            return false;
-        }
-    }
-
-    static void iteration(BiConsumer<byte[], byte[]> consumer) {
+    void iteration(BiConsumer<byte[], byte[]> consumer) {
         DBIterator iterator = db.iterator();
         try {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
@@ -103,7 +105,8 @@ final class DBHelper {
         }
     }
 
-    static <T> T iteration(BiFunction<byte[], byte[], T> function) {
+
+    <T> T iteration(BiFunction<byte[], byte[], T> function) {
         DBIterator iterator = db.iterator();
         try {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
