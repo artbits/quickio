@@ -7,10 +7,10 @@ import java.util.function.Consumer;
 final class Student extends IObject {
 
     String name;
-    int gender;
-    int age;
-    long departmentId;
-    long scoreId;
+    Integer gender;
+    Integer age;
+    Long departmentId;
+    Long scoreId;
 
     interface Gender {
         int MALE = 0;

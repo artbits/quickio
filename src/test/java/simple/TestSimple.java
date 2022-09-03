@@ -1,18 +1,16 @@
 package simple;
 
 import com.github.artbits.quickio.QuickIO;
+import com.github.artbits.quickio.QuickStore;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 final class TestSimple {
 
-    static {
-        QuickIO.init();
-    }
+    QuickStore store = QuickIO.store("school_store");
 
     @Test
     void create_department_test() {
@@ -20,7 +18,7 @@ final class TestSimple {
             d.name = "Computer science";
             d.studentIds = new ArrayList<>();
         });
-        QuickIO.save(department);
+        store.save(department);
 
         System.out.println(department.id());
         System.out.println(department.timestamp());
@@ -28,7 +26,7 @@ final class TestSimple {
 
     @Test
     void save_student_test() {
-        Department department = QuickIO.findOne(Department.class, d -> "Computer science".equals(d.name));
+        Department department = store.findOne(Department.class, d -> "Computer science".equals(d.name));
         if (department == null) {
             System.out.println("department object is null.");
             return;
@@ -40,17 +38,17 @@ final class TestSimple {
             s.gender = Student.Gender.MALE;
             s.departmentId = department.id();
         });
-        QuickIO.save(student);
+        store.save(student);
 
         department.studentIds.add(student.id());
-        QuickIO.save(department);
+        store.save(department);
 
         System.out.println(student);
     }
 
     @Test
     void save_students_test() {
-        Department department = QuickIO.findOne(Department.class, d -> "Computer science".equals(d.name));
+        Department department = store.findOne(Department.class, d -> "Computer science".equals(d.name));
         if (department == null) {
             System.out.println("department object is null.");
             return;
@@ -75,16 +73,16 @@ final class TestSimple {
             s.gender = Student.Gender.MALE;
             s.departmentId = department.id();
         }));
-        QuickIO.save(students);
+        store.save(students);
 
         students.forEach(student -> department.studentIds.add(student.id()));
-        QuickIO.save(department);
+        store.save(department);
     }
 
     @Test
     void save_score_test() {
         Random random = new Random();
-        List<Student> students = QuickIO.find(Student.class);
+        List<Student> students = store.find(Student.class);
         students.forEach(student -> {
             Score score = new Score(s -> {
                 s.studentId = student.id();
@@ -92,16 +90,16 @@ final class TestSimple {
                 s.english = random.nextInt(100);
                 s.maths = random.nextInt(100);
             });
-            QuickIO.save(score);
+            store.save(score);
             student.scoreId = score.id();
         });
-        QuickIO.save(students);
+        store.save(students);
     }
 
     @Test
     void update_students_data_test() {
         Student student = new Student(s -> s.gender = Student.Gender.FEMALE);
-        QuickIO.update(student, s -> {
+        store.update(student, s -> {
             boolean b1 = "Lisa".equals(s.name);
             boolean b2 = "Amy".equals(s.name);
             return b1 || b2;
@@ -110,13 +108,13 @@ final class TestSimple {
 
     @Test
     void find_all_students_test() {
-        List<Student> students = QuickIO.find(Student.class);
+        List<Student> students = store.find(Student.class);
         students.forEach(System.out::println);
     }
 
     @Test
     void find_students_by_department_test() {
-        Department department = QuickIO.findOne(Department.class, d -> "Computer science".equals(d.name));
+        Department department = store.findOne(Department.class, d -> "Computer science".equals(d.name));
         if (department == null) {
             System.out.println("department object is null.");
             return;
@@ -128,59 +126,65 @@ final class TestSimple {
             studentIds[i] = department.studentIds.get(i);
         }
 
-        List<Student> students = QuickIO.find(Student.class, studentIds);
+        List<Student> students = store.find(Student.class, studentIds);
         students.forEach(System.out::println);
     }
 
     @Test
     void find_first_student_test() {
-        Student student = QuickIO.findFirst(Student.class);
+        Student student = store.findFirst(Student.class);
         System.out.println(student);
     }
 
     @Test
     void find_last_student_test() {
-        Student student = QuickIO.findLast(Student.class);
+        Student student = store.findLast(Student.class);
         System.out.println(student);
     }
 
     @Test
     void find_all_students_score_test() {
-        List<Student> students = QuickIO.find(Student.class);
+        List<Student> students = store.find(Student.class);
         students.forEach(student -> {
-            Score score = QuickIO.find(Score.class, student.scoreId);
+            Score score = store.find(Score.class, student.scoreId);
             System.out.println(student.name + "   " + score);
         });
     }
 
     @Test
     void find_students_english_score_above_60_test() {
-        List<Score> scores = QuickIO.find(Score.class, s -> s.english >= 60);
+        List<Score> scores = store.find(Score.class, s -> s.english >= 60);
         scores.forEach(score -> {
-            Student student = QuickIO.find(Student.class, score.studentId);
-            System.out.println(student.name + "   " + score.maths);
+            Student student = store.find(Student.class, score.studentId);
+            if (student != null) {
+                System.out.println(student.name + "   " + score.maths);
+            }
         });
     }
 
     @Test
     void sort_students_maths_score_test() {
-        List<Score> scores = QuickIO.find(Score.class, null, options -> options.sort("maths", -1));
+        List<Score> scores = store.find(Score.class, null, options -> options.sort("maths", -1));
         scores.forEach(score -> {
-            Student student = QuickIO.find(Student.class, score.studentId);
-            System.out.println(student.name + "   " + score.maths);
+            Student student = store.find(Student.class, score.studentId);
+            if (student != null) {
+                System.out.println(student.name + "   " + score.maths);
+            }
         });
     }
 
     @Test
     void find_student_highest_score_maths_test() {
-        List<Score> scores = QuickIO.find(Score.class, null, options -> {
+        List<Score> scores = store.find(Score.class, null, options -> {
             options.sort("maths", -1);
             options.limit(1);
         });
         if (scores.size() == 1) {
             Score score = scores.get(0);
-            Student student = QuickIO.find(Student.class, score.studentId);
-            System.out.println(student.name + "   " + score.maths);
+            Student student = store.find(Student.class, score.studentId);
+            if (student != null) {
+                System.out.println(student.name + "   " + score.maths);
+            }
         }
     }
 
@@ -190,13 +194,13 @@ final class TestSimple {
             d.name = "unknown";
             d.studentIds = new ArrayList<>();
         });
-        QuickIO.save(department);
+        store.save(department);
         System.out.println(department.id());
 
-        boolean b = QuickIO.delete(department.id());
+        boolean b = store.delete(department.id());
         System.out.println(b);
 
-        QuickIO.find(Department.class).forEach(d -> System.out.println(d.name));
+        store.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
     @Test
@@ -210,7 +214,7 @@ final class TestSimple {
             d.name = "unknown";
             d.studentIds = new ArrayList<>();
         }));
-        QuickIO.save(departments);
+        store.save(departments);
 
         int index = departments.size();
         long[] departmentIds = new long[index];
@@ -218,9 +222,9 @@ final class TestSimple {
             departmentIds[i] = departments.get(i).id();
         }
 
-        QuickIO.delete(departmentIds);
+        store.delete(departmentIds);
 
-        QuickIO.find(Department.class).forEach(d -> System.out.println(d.name));
+        store.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
     @Test
@@ -229,30 +233,25 @@ final class TestSimple {
             d.name = "unknown";
             d.studentIds = new ArrayList<>();
         });
-        QuickIO.save(department);
-        QuickIO.delete(Department.class, d -> "unknown".equals(d.name));
-        QuickIO.find(Department.class).forEach(d -> System.out.println(d.name));
+        store.save(department);
+        store.delete(Department.class, d -> "unknown".equals(d.name));
+        store.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
     @Test
     void delete_all_departments_test() {
-        QuickIO.delete(Department.class);
-        QuickIO.find(Department.class).forEach(d -> System.out.println(d.name));
-    }
-
-    @Test
-    void init_test() {
-        QuickIO.init("dir");
+        store.delete(Department.class);
+        store.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
     @Test
     void destroy_test() {
         try {
-            QuickIO.destroy();
-            List<Student> students = QuickIO.find(Student.class);
+            QuickIO.destroy(store);
+            List<Student> students = store.find(Student.class);
             students.forEach(System.out::println);
         } catch (NullPointerException e) {
-            System.out.println("QuickIO destroyed");
+            System.out.println("QuickStore destroyed");
         }
     }
 
