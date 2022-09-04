@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-public final class QuickStore extends IO {
+class QuickStore extends IO {
 
     QuickStore(String path) {
         super("data/store/" + path);
