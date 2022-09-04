@@ -2,7 +2,7 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 
 
-Quickio is a Java library based on LevelDB embedded database design. It can quickly read or write Java beans in the disk, or store data as a K-V database. Zero configuration, fast and efficient.
+QuickIO is a Java library based on LevelDB embedded database design. It can quickly read or write Java beans in the disk, or store data as a K-V database. Zero configuration, fast and efficient.
 
 
 ## Download
