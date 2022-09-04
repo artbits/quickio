@@ -1,7 +1,6 @@
 package simple;
 
 import com.github.artbits.quickio.QuickIO;
-import com.github.artbits.quickio.QuickStore;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.Random;
 
 final class TestSimple {
 
-    QuickStore store = QuickIO.store("school_store");
+    QuickIO.Store store = QuickIO.store("school_store");
 
     @Test
     void create_department_test() {
@@ -157,7 +156,7 @@ final class TestSimple {
         scores.forEach(score -> {
             Student student = store.find(Student.class, score.studentId);
             if (student != null) {
-                System.out.println(student.name + "   " + score.maths);
+                System.out.println(student.name + "   " + score.english);
             }
         });
     }
@@ -247,11 +246,11 @@ final class TestSimple {
     @Test
     void destroy_test() {
         try {
-            QuickIO.destroy(store);
+            store.destroy();
             List<Student> students = store.find(Student.class);
             students.forEach(System.out::println);
         } catch (NullPointerException e) {
-            System.out.println("QuickStore destroyed");
+            System.out.println("Store destroyed");
         }
     }
 
