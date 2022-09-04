@@ -2,24 +2,33 @@ package com.github.artbits.quickio;
 
 public final class QuickIO {
 
-    public static QuickStore store(String path) {
+    public static Store store(String path) {
         if (path == null || path.isEmpty()) {
             throw new RuntimeException("The path parameter cannot be null or empty");
         }
-        return new QuickStore(path);
+        return new Store(path);
     }
 
 
-    public static QuickKV kv(String path) {
+    public static KV kv(String path) {
         if (path == null || path.isEmpty()) {
             throw new RuntimeException("The path parameter cannot be null or empty");
         }
-        return new QuickKV(path);
+        return new KV(path);
     }
 
 
-    public static void destroy(IO io) {
-        io.destroy();
+    public static class Store extends QuickStore {
+        Store(String path) {
+            super(path);
+        }
+    }
+
+
+    public static class KV extends QuickKV {
+        KV(String path) {
+            super(path);
+        }
     }
 
 }

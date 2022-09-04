@@ -3,7 +3,7 @@ package com.github.artbits.quickio;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-public final class QuickKV extends IO {
+class QuickKV extends IO {
 
     QuickKV(String path) {
         super("data/kv/" + path);
@@ -39,6 +39,17 @@ public final class QuickKV extends IO {
     public <T> T read(String key, Class<T> tClass) {
         byte[] bytes = get(asBytes(key));
         return (bytes != null) ? asObject(bytes, tClass) : null;
+    }
+
+
+    public boolean remove(String key) {
+        return delete(asBytes(key));
+    }
+
+
+    public boolean containsKey(String key) {
+        byte[] bytes = get(asBytes(key));
+        return bytes != null;
     }
 
 }

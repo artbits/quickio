@@ -30,7 +30,7 @@ class IO {
     }
 
 
-    void destroy() {
+    public void destroy() {
         try {
             if (db != null) {
                 db.close();
