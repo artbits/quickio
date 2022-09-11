@@ -6,7 +6,7 @@ import static com.github.artbits.quickio.Tools.asObject;
 class QuickKV extends IO {
 
     QuickKV(String path) {
-        super("data/kv/" + path);
+        super(path);
     }
 
 

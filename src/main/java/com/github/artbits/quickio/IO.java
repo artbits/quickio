@@ -1,6 +1,7 @@
 package com.github.artbits.quickio;
 
 import org.iq80.leveldb.*;
+import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
@@ -20,7 +21,7 @@ class IO {
         defer(this::destroy);
         try {
             DBFactory factory = new Iq80DBFactory();
-            org.iq80.leveldb.Options options = new org.iq80.leveldb.Options();
+            Options options = new Options();
             options.cacheSize(100 * 1024 * 1024);
             options.createIfMissing(true);
             db = factory.open(new File(path), options);

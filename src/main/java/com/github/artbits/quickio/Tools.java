@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -119,6 +120,17 @@ final class Tools {
     }
 
 
+    static void closeFileChannel(FileChannel channel) {
+        if (channel != null) {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
     static Map<String, Field> getFields(Class<?> clazz) {
         Map<String, Field> map = new HashMap<>();
         while (clazz != null){
@@ -130,6 +142,7 @@ final class Tools {
         }
         return map;
     }
+
 
     static int getDigit(long i){
         i = i > 0 ? i : -i;
