@@ -156,7 +156,7 @@ store.destroy();
 ### 2. Store K-V type data.
 Start using.
 ```java
-//Create QuickIO.KV object and set store directory
+//Create QuickIO.KV object and set store directory.
 QuickIO.KV kv = QuickIO.kv("simple_kv");
 
 
@@ -219,7 +219,7 @@ kv.destroy();
 
 ### 3. Store file.
 ```java
-//Create QuickIO.KV object and set store directory
+//Create QuickIO.Can object and set store directory.
 QuickIO.Can can = QuickIO.can("simple_can");
 
 //Save the file to a can and change the file name.
