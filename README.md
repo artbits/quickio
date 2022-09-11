@@ -2,7 +2,7 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 
 
-QuickIO is a Java library based on LevelDB embedded database design. It can quickly read or write Java beans in the disk, or store data as a K-V database. Zero configuration, fast and efficient.
+QuickIO is a Java library designed based on the LevelDB embedded database. It can quickly read or write Java beans to disk, or store data as a K-V database, or store files in cans. Zero configuration, fast and efficient.
 
 
 ## Download
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:0.0.6'
+    implementation 'com.github.artbits:quickio:0.0.7'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 ```
 
@@ -215,6 +215,32 @@ if (user != null) {
 //Destroy objects manually.
 kv.destroy();
 ```
+
+
+### 3. Store file.
+```java
+//Create QuickIO.KV object and set store directory
+QuickIO.Can can = QuickIO.can("simple_can");
+
+//Save the file to a can and change the file name.
+can.put("test.png", new File("..."));
+
+//Get the specified file from the can.
+File file = can.get("test.png");
+if (file != null) {
+    System.out.println(file.getPath());
+}
+
+//Remove the specified file from the can.
+can.remove("test.png");
+
+//Traverse all files from a can.
+List<File> files = can.list();
+
+//Delete the can.
+can.drop();
+```
+
 
 ## Simple
 [Here](https://github.com/artbits/quickio/tree/main/src/test/java/simple)
