@@ -4,17 +4,25 @@ public final class QuickIO {
 
     public static Store store(String path) {
         if (path == null || path.isEmpty()) {
-            throw new RuntimeException("The path parameter cannot be null or empty");
+            throw new RuntimeException("The parameter cannot be null or empty");
         }
-        return new Store(path);
+        return new Store("data/store/" + path);
     }
 
 
     public static KV kv(String path) {
         if (path == null || path.isEmpty()) {
-            throw new RuntimeException("The path parameter cannot be null or empty");
+            throw new RuntimeException("The parameter cannot be null or empty");
         }
-        return new KV(path);
+        return new KV("data/kv/" + path);
+    }
+
+
+    public static Can can(String path) {
+        if (path == null || path.isEmpty()) {
+            throw new RuntimeException("The parameter cannot be null or empty");
+        }
+        return new Can("data/can/" + path);
     }
 
 
@@ -27,6 +35,13 @@ public final class QuickIO {
 
     public static class KV extends QuickKV {
         KV(String path) {
+            super(path);
+        }
+    }
+
+
+    public static class Can extends QuickCan {
+        Can(String path) {
             super(path);
         }
     }

@@ -12,7 +12,7 @@ import static com.github.artbits.quickio.Tools.asObject;
 class QuickStore extends IO {
 
     QuickStore(String path) {
-        super("data/store/" + path);
+        super(path);
     }
 
 

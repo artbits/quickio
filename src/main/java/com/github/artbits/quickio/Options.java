@@ -27,7 +27,9 @@ public final class Options {
 
 
     <T> List<T> sortList(List<T> list) {
-        if (sortField == null || sort < -1 || sort == 0 || sort > 1) return list;
+        if (sortField == null || sort < -1 || sort == 0 || sort > 1) {
+            return list;
+        }
         Comparator<T> comparing = Comparator.comparing(t -> {
             try {
                 Field field = Tools.getFields(t.getClass()).get(sortField);
@@ -42,7 +44,9 @@ public final class Options {
 
 
     <T> List<T> limitList(List<T> list) {
-        if (limit <= 0) return list;
+        if (limit <= 0) {
+            return list;
+        }
         return list.stream().limit(limit).collect(Collectors.toList());
     }
 
