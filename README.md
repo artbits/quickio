@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:0.0.8'
+    implementation 'com.github.artbits:quickio:0.0.9'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
 </dependency>
 ```
 
@@ -35,9 +35,9 @@ Maven:
 ## How do I use QuickIO?
 
 ### 1. Store Java beans.
-Create a Java bean that needs to be stored or read, and extends the **IObject** class.
+Create a Java bean that needs to be stored or read, and extends the ``QuickIO.Object`` class.
 ```java
-public class Book extends IObject {
+public class Book extends QuickIO.Object {
     private String name;
     private String author;
     private Float price;
