@@ -1,10 +1,10 @@
 package simple;
 
-import com.github.artbits.quickio.IObject;
+import com.github.artbits.quickio.QuickIO;
 
 import java.util.function.Consumer;
 
-final class Score extends IObject {
+final class Score extends QuickIO.Object {
 
     Long studentId;
     Integer language;
