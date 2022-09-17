@@ -16,10 +16,11 @@ class QuickCan {
 
 
     QuickCan(String path) {
-        this.path = path;
-        File file = new File(path);
-        if (!file.exists() && !file.isDirectory()) {
-            file.mkdirs();
+        try {
+            this.path = path;
+            Files.createDirectories(Paths.get(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -29,14 +30,30 @@ class QuickCan {
         FileChannel outChannel = null;
         try {
             inChannel = FileChannel.open(Paths.get(file.getPath()), StandardOpenOption.READ);
-            outChannel = FileChannel.open(Paths.get(path + "/" + filename),
-                    StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            outChannel = FileChannel.open(
+                    Paths.get(path + "/" + filename),
+                    StandardOpenOption.READ,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE
+            );
             inChannel.transferTo(0, inChannel.size(), outChannel);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            Tools.closeFileChannel(outChannel);
-            Tools.closeFileChannel(inChannel);
+            if (outChannel != null) {
+                try {
+                    outChannel.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (inChannel != null) {
+                try {
+                    inChannel.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 
