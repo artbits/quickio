@@ -6,6 +6,9 @@ import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -14,17 +17,32 @@ import static com.github.artbits.quickio.Tools.defer;
 
 class IO {
 
+    private final File file;
+    private final DBFactory factory;
     private DB db;
 
 
     IO(String path) {
-        defer(this::destroy);
+        defer(this::close);
         try {
-            DBFactory factory = new Iq80DBFactory();
             Options options = new Options();
             options.cacheSize(100 * 1024 * 1024);
             options.createIfMissing(true);
-            db = factory.open(new File(path), options);
+            file = new File(path);
+            factory = new Iq80DBFactory();
+            db = factory.open(file, options);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void close() {
+        try {
+            if (db != null) {
+                db.close();
+                db = null;
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -33,10 +51,17 @@ class IO {
 
     public void destroy() {
         try {
-            if (db != null) {
-                db.close();
-                db = null;
-            }
+            factory.destroy(file, null);
+            this.close();
+            Files.walk(Paths.get(file.getPath()))
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
