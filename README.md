@@ -7,13 +7,13 @@ QuickIO is a Java library designed based on the LevelDB embedded database. It ca
 
 ## Download
 Gradle:
-```gradle
+```groovy
 repositories {
     maven { url 'https://www.jitpack.io' }
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:0.0.7'
+    implementation 'com.github.artbits:quickio:0.0.8'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
 </dependency>
 ```
 
@@ -48,8 +48,8 @@ public class Book extends IObject {
 
 Start using.
 ```java
-//Create QuickIO.Store object and set store directory.
-QuickIO.Store store = QuickIO.store("simple_store");
+//Create QuickIO.DB object and set store directory.
+QuickIO.DB db = QuickIO.db("simple_db");
 
 
 
@@ -62,7 +62,7 @@ book.setPrice(108.00f);
 book.setPages(541);
 
 //Save data.
-store.save(book);
+db.save(book);
 
 //Saved successfully. The value of ID is not zero.
 System.out.println(book.id());
@@ -71,14 +71,14 @@ System.out.println(book.timestamp());
 
 //Update the stored data according to the ID.
 book.setPrice(50.10f);
-store.save(book);
+db.save(book);
 
 //Batch save data.
 List<Book> books = new ArrayList<>();
 books.add(book);
 books.add(book);
 books.add(book);
-store.save(books);
+db.save(books);
 books.forEach(b -> System.out.println(b.id()));
 
 
@@ -89,7 +89,7 @@ Book book = new Book();
 book.setPrice(249.99f);
 
 //Update data by condition.
-store.update(book, b -> {
+db.update(book, b -> {
     boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
     boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
     return b1 && b2;
@@ -99,46 +99,46 @@ store.update(book, b -> {
 
 //Delete:
 //Delete by ID. Deletion succeeded, the result is true.
-boolean res = store.delete(book.id());
+boolean res = db.delete(book.id());
 System.out.println(res);
 
 //Batch delete by ID.
-store.delete(id1, id2, id3, id4);
+db.delete(id1, id2, id3, id4);
 
 //Delete all data of Book type.
-store.delete(Book.class);
+db.delete(Book.class);
 
 //Delete by condition.
-store.delete(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+db.delete(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 
 
 
 //Find:
 //Find the first Java bean of type Book.
-Book book1 = store.findFirst(Book.class);
+Book book1 = db.findFirst(Book.class);
 
 //Find the last Java bean of type Book.
-Book book2 = store.findLast(Book.class);
+Book book2 = db.findLast(Book.class);
 
 //Find the first Java bean of Book type by criteria.
-Book book3 = store.findOne(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+Book book3 = db.findOne(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 
 //Find the Java bean of Book type with the specified ID.
-Book book4 = store.find(Book.class, 1001657291650502656L);
+Book book4 = db.find(Book.class, 1001657291650502656L);
 
 //Find all Java beans of Book type.
-List<Book> books1 = store.find(Book.class);
+List<Book> books1 = db.find(Book.class);
 
 //Batch find Java beans of Book type by ID.
-List<Book> books2 = store.find(Book.class, id1, id2, id3, id4);
+List<Book> books2 = db.find(Book.class, id1, id2, id3, id4);
 
 //Batch find Java beans of Book type by conditions.
-List<Book> books3 = store.find(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+List<Book> books3 = db.find(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
 
 //Batch find Java beans of Book type by conditions.
 //Sort, 1 is asc, and -1 is desc.
 //Can limit the quantity.
-List<Book> books4 = store.find(Book.class, b -> {
+List<Book> books4 = db.find(Book.class, b -> {
     boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
     boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
     return b1 && b2;
@@ -149,8 +149,11 @@ List<Book> books4 = store.find(Book.class, b -> {
 
 
 
-//Destroy objects manually.
-store.destroy();
+//Manually close the database file.
+db.close();
+
+//Delete database file.
+db.destroy();
 ```
 
 ### 2. Store K-V type data.
@@ -212,7 +215,10 @@ if (user != null) {
 
 
 
-//Destroy objects manually.
+//Manually close the database file.
+kv.close();
+
+//Delete database file.
 kv.destroy();
 ```
 
@@ -238,7 +244,7 @@ can.remove("test.png");
 List<File> files = can.list();
 
 //Delete the can.
-can.drop();
+can.destroy();
 ```
 
 
