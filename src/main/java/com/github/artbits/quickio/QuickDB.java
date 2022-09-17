@@ -9,9 +9,9 @@ import java.util.function.Predicate;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-class QuickStore extends IO {
+class QuickDB extends IO {
 
-    QuickStore(String path) {
+    QuickDB(String path) {
         super(path);
     }
 

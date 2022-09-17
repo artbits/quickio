@@ -2,11 +2,11 @@ package com.github.artbits.quickio;
 
 public final class QuickIO {
 
-    public static Store store(String path) {
+    public static DB db(String path) {
         if (path == null || path.isEmpty()) {
             throw new RuntimeException("The parameter cannot be null or empty");
         }
-        return new Store("data/store/" + path);
+        return new DB("data/db/" + path);
     }
 
 
@@ -26,8 +26,8 @@ public final class QuickIO {
     }
 
 
-    public static class Store extends QuickStore {
-        Store(String path) {
+    public static class DB extends QuickDB {
+        DB(String path) {
             super(path);
         }
     }

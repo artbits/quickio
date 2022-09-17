@@ -69,7 +69,7 @@ class QuickCan {
     }
 
 
-    public void drop() {
+    public void destroy() {
         try {
             Files.walk(Paths.get(path))
                     .sorted(Comparator.reverseOrder())
