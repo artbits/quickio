@@ -16,22 +16,22 @@ class QuickDB extends IO {
     }
 
 
-    public void save(IObject o) {
-        if (o.id() == 0 || Tools.getDigit(o.id()) < 18) {
-            o.id = Snowflake.nextId();
+    public void save(QuickIO.Object object) {
+        if (object.id() == 0 || Tools.getDigit(object.id()) < 18) {
+            object.id = Snowflake.nextId();
         }
-        boolean bool = put(asBytes(o.id()),  asBytes(o));
+        boolean bool = put(asBytes(object.id()),  asBytes(object));
         if (!bool) {
-            o.id = 0L;
+            object.id = 0L;
         }
     }
 
 
     public <T> void save(List<T> list) {
         writeBatch(batch -> list.forEach(t -> {
-            IObject o = (IObject) t;
-            o.id = o.id() == 0 ? Snowflake.nextId() : o.id();
-            batch.put(asBytes(o.id()), asBytes(o));
+            QuickIO.Object object = (QuickIO.Object) t;
+            object.id = object.id() == 0 ? Snowflake.nextId() : object.id();
+            batch.put(asBytes(object.id()), asBytes(object));
         }));
     }
 

@@ -8,9 +8,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 final class Tools {
 
@@ -117,17 +118,6 @@ final class Tools {
         buffer.put(key, 0, key.length);
         buffer.flip();
         return buffer.getLong();
-    }
-
-
-    static void closeFileChannel(FileChannel channel) {
-        if (channel != null) {
-            try {
-                channel.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
 
