@@ -4,6 +4,7 @@ import com.github.artbits.quickio.QuickIO;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -53,20 +54,17 @@ final class TestSimple {
             return;
         }
 
-        List<Student> students = new ArrayList<>();
-        students.add(new Student(s -> {
+        List<Student> students = Arrays.asList(new Student(s -> {
             s.name = "Li Hua";
             s.age = 22;
             s.gender = Student.Gender.MALE;
             s.departmentId = department.id();
-        }));
-        students.add(new Student(s -> {
+        }), new Student(s -> {
             s.name = "Lisa";
             s.age = 19;
             s.gender = Student.Gender.MALE;
             s.departmentId = department.id();
-        }));
-        students.add(new Student(s -> {
+        }), new Student(s -> {
             s.name = "Amy";
             s.age = 20;
             s.gender = Student.Gender.MALE;
@@ -204,12 +202,10 @@ final class TestSimple {
 
     @Test
     void delete_departments_by_ids_test() {
-        List<Department> departments = new ArrayList<>();
-        departments.add(new Department(d -> {
+        List<Department> departments = Arrays.asList(new Department(d -> {
             d.name = "unknown";
             d.studentIds = new ArrayList<>();
-        }));
-        departments.add(new Department(d -> {
+        }), new Department(d -> {
             d.name = "unknown";
             d.studentIds = new ArrayList<>();
         }));
@@ -220,9 +216,21 @@ final class TestSimple {
         for (int i = 0; i < index; i++) {
             departmentIds[i] = departments.get(i).id();
         }
-
         db.delete(departmentIds);
+        db.find(Department.class).forEach(d -> System.out.println(d.name));
+    }
 
+    @Test
+    void delete_departments_by_list_test() {
+        List<Department> departments = Arrays.asList(new Department(d -> {
+            d.name = "unknown";
+            d.studentIds = new ArrayList<>();
+        }), new Department(d -> {
+            d.name = "unknown";
+            d.studentIds = new ArrayList<>();
+        }));
+        db.save(departments);
+        db.delete(departments);
         db.find(Department.class).forEach(d -> System.out.println(d.name));
     }
 
