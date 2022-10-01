@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 class QuickCan {
 
@@ -26,34 +28,13 @@ class QuickCan {
 
 
     public void put(String filename, File file) {
-        FileChannel inChannel = null;
-        FileChannel outChannel = null;
-        try {
-            inChannel = FileChannel.open(Paths.get(file.getPath()), StandardOpenOption.READ);
-            outChannel = FileChannel.open(
-                    Paths.get(path + "/" + filename),
-                    StandardOpenOption.READ,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.CREATE
-            );
+        String outPath = path + "/" + filename;
+        try (FileChannel inChannel = FileChannel.open(Paths.get(file.getPath()), StandardOpenOption.READ);
+             FileChannel outChannel = FileChannel.open(Paths.get(outPath), StandardOpenOption.READ,
+                     StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
             inChannel.transferTo(0, inChannel.size(), outChannel);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            if (outChannel != null) {
-                try {
-                    outChannel.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (inChannel != null) {
-                try {
-                    inChannel.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
         }
     }
 
@@ -86,17 +67,30 @@ class QuickCan {
     }
 
 
+    public void foreach(Predicate<File> predicate) {
+        File[] files = new File(path).listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                continue;
+            }
+            if (!predicate.test(file)) {
+                break;
+            }
+        }
+    }
+
+
     public void destroy() {
         try {
-            Files.walk(Paths.get(path))
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(path1 -> {
-                        try {
-                            Files.delete(path1);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            Path filePath = Paths.get(path);
+            Comparator<Path> comparator = Comparator.reverseOrder();
+            Files.walk(filePath).sorted(comparator).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -9,6 +9,8 @@ public final class QuickIO {
     private final static String CAN_PATH = "data/can/";
     private final static String EXCEPTION_MESSAGE = "The parameter cannot be null or empty";
 
+    private final static Snowflake snowflake = new Snowflake(0, 0);
+
 
     public static class Object implements Serializable {
         long id;
@@ -18,7 +20,7 @@ public final class QuickIO {
         }
 
         public final long timestamp() {
-            return Snowflake.timestamp(id);
+            return toTimestamp(id);
         }
     }
 
@@ -65,6 +67,16 @@ public final class QuickIO {
             throw new RuntimeException(EXCEPTION_MESSAGE);
         }
         return new Can(CAN_PATH + path);
+    }
+
+
+    public static long id() {
+        return snowflake.nextId();
+    }
+
+
+    public static long toTimestamp(long id) {
+        return snowflake.toTimestamp(id);
     }
 
 }
