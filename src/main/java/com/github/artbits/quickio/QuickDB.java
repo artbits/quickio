@@ -16,28 +16,27 @@ class QuickDB extends IO {
     }
 
 
-    public void save(QuickIO.Object object) {
-        if (object.id() == 0 || Tools.getDigit(object.id()) < 18) {
-            object.id = Snowflake.nextId();
+    public <T extends QuickIO.Object> void save(T t) {
+        if (t.id() == 0 || Tools.getDigit(t.id()) < 18) {
+            t.id = QuickIO.id();
         }
-        boolean bool = put(asBytes(object.id()),  asBytes(object));
+        boolean bool = put(asBytes(t.id),  asBytes(t));
         if (!bool) {
-            object.id = 0L;
+            t.id = 0L;
         }
     }
 
 
-    public <T> void save(List<T> list) {
+    public <T extends QuickIO.Object> void save(List<T> list) {
         writeBatch(batch -> list.forEach(t -> {
-            QuickIO.Object object = (QuickIO.Object) t;
-            object.id = object.id() == 0 ? Snowflake.nextId() : object.id();
-            batch.put(asBytes(object.id()), asBytes(object));
+            t.id = t.id() == 0 ? QuickIO.id() : t.id();
+            batch.put(asBytes(t.id), asBytes(t));
         }));
     }
 
 
     @SuppressWarnings("unchecked")
-    public <T> void update(T t , Predicate<T> predicate) {
+    public <T extends QuickIO.Object> void update(T t , Predicate<T> predicate) {
         Map<String, Field> tMap = Tools.getFields(t.getClass());
         iteration((key, value) -> {
             T localT = (T) asObject(value, t.getClass());
@@ -62,7 +61,9 @@ class QuickDB extends IO {
                         throw new RuntimeException(e);
                     }
                 }
-                put(asBytes(id), asBytes(localT));
+                if (id != 0) {
+                    put(asBytes(id), asBytes(localT));
+                }
             }
         });
     }
@@ -82,7 +83,12 @@ class QuickDB extends IO {
     }
 
 
-    public <T> void delete(Class<T> tClass) {
+    public <T extends QuickIO.Object> void delete(List<T> list) {
+        writeBatch(batch -> list.forEach(t -> batch.delete(asBytes(t.id))));
+    }
+
+
+    public <T extends QuickIO.Object> void delete(Class<T> tClass) {
         writeBatch(batch -> iteration((key, value) -> {
             if (asObject(value, tClass) != null) {
                 batch.delete(key);
@@ -91,7 +97,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> void delete(Class<T> tClass, Predicate<T> predicate) {
+    public <T extends QuickIO.Object> void delete(Class<T> tClass, Predicate<T> predicate) {
         writeBatch(batch -> iteration((key, value) -> {
             T t = asObject(value, tClass);
             if (t != null && predicate.test(t)) {
@@ -101,7 +107,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> T findFirst(Class<T> tClass) {
+    public <T extends QuickIO.Object> T findFirst(Class<T> tClass) {
         final long[] minKey = {Long.MAX_VALUE};
         AtomicReference<T> minT = new AtomicReference<>();
         iteration((key, value) -> {
@@ -116,7 +122,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> T findLast(Class<T> tClass) {
+    public <T extends QuickIO.Object> T findLast(Class<T> tClass) {
         final long[] maxKey = {Long.MIN_VALUE};
         AtomicReference<T> maxT = new AtomicReference<>();
         iteration((key, value) -> {
@@ -131,7 +137,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> T findOne(Class<T> tClass, Predicate<T> predicate) {
+    public <T extends QuickIO.Object> T findOne(Class<T> tClass, Predicate<T> predicate) {
         return iteration((key, value) -> {
             T t = asObject(value, tClass);
             return t != null && predicate.test(t) ? t : null;
@@ -139,7 +145,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> List<T> find(Class<T> tClass) {
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass) {
         List<T> list = new ArrayList<>();
         iteration((key, value) -> {
             T t = asObject(value, tClass);
@@ -151,7 +157,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> List<T> find(Class<T> tClass, Predicate<T> predicate) {
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate) {
         List<T> list = new ArrayList<>();
         iteration((key, value) -> {
             T t = asObject(value, tClass);
@@ -163,7 +169,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<Options> consumer) {
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<Options> consumer) {
         Options options = new Options();
         consumer.accept(options);
         List<T> list = new ArrayList<>();
@@ -184,7 +190,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> List<T> find(Class<T> tClass, long... ids) {
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, long... ids) {
         List<T> list = new ArrayList<>();
         for (long id : ids) {
             byte[] key = asBytes(id);
@@ -196,7 +202,7 @@ class QuickDB extends IO {
     }
 
 
-    public <T> T find(Class<T> tClass, long id) {
+    public <T extends QuickIO.Object> T find(Class<T> tClass, long id) {
         byte[] key = asBytes(id);
         byte[] value = get(key);
         return (value != null) ? asObject(value, tClass) : null;

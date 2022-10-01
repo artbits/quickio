@@ -7,29 +7,28 @@ import org.iq80.leveldb.impl.Iq80DBFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import static com.github.artbits.quickio.Tools.defer;
-
 class IO {
 
     private final File file;
     private final DBFactory factory;
-    private DB db;
+    private final DB db;
 
 
     IO(String path) {
-        defer(this::close);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         try {
-            Options options = new Options();
-            options.cacheSize(100 * 1024 * 1024);
-            options.createIfMissing(true);
             file = new File(path);
             factory = new Iq80DBFactory();
+            Options options = new Options();
+            options.createIfMissing(true);
+            options.cacheSize(100 * 1024 * 1024);
             db = factory.open(file, options);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -41,7 +40,6 @@ class IO {
         try {
             if (db != null) {
                 db.close();
-                db = null;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -52,16 +50,16 @@ class IO {
     public void destroy() {
         try {
             factory.destroy(file, null);
-            this.close();
-            Files.walk(Paths.get(file.getPath()))
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            close();
+            Path filePath = Paths.get(file.getPath());
+            Comparator<Path> comparator = Comparator.reverseOrder();
+            Files.walk(filePath).sorted(comparator).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -98,43 +96,30 @@ class IO {
 
 
     void writeBatch(Consumer<WriteBatch> consumer) {
-        WriteBatch batch = db.createWriteBatch();
-        try {
+        try (WriteBatch batch = db.createWriteBatch()) {
             consumer.accept(batch);
             db.write(batch);
-        } catch (DBException e) {
+        } catch (DBException | IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                batch.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
 
     void iteration(BiConsumer<byte[], byte[]> consumer) {
-        DBIterator iterator = db.iterator();
-        try {
+        try (DBIterator iterator = db.iterator()) {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
                 byte[] value = iterator.peekNext().getValue();
                 consumer.accept(key, value);
             }
-        } finally {
-            try {
-                iterator.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
 
     <T> T iteration(BiFunction<byte[], byte[], T> function) {
-        DBIterator iterator = db.iterator();
-        try {
+        try (DBIterator iterator = db.iterator()) {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
                 byte[] value = iterator.peekNext().getValue();
@@ -144,12 +129,8 @@ class IO {
                 }
             }
             return null;
-        } finally {
-            try {
-                iterator.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

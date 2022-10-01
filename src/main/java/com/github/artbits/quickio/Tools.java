@@ -11,92 +11,28 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 final class Tools {
 
-    private static final Stack<Runnable> deferStack = new Stack<>();
-    private static final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    private static final Hessian2Output output = new Hessian2Output(bos);
-
-    private static ByteArrayInputStream bis;
-    private static Hessian2Input input;
-
-
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            while (!deferStack.empty()) {
-                deferStack.pop().run();
-            }
-        }));
-
-        defer(() -> {
-            try {
-                bos.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        defer(() -> {
-            try {
-                output.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        defer(() -> {
-            try {
-                if (bis != null) {
-                    bis.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        defer(() -> {
-            try {
-                if (input != null) {
-                    input.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-
-    static void defer(Runnable runnable) {
-        if (runnable != null) {
-            deferStack.push(runnable);
-        }
-    }
-
-
     static <T> T asObject(byte[] value, Class<T> tClass) {
-        try {
-            bis = new ByteArrayInputStream(value);
-            input = new Hessian2Input(bis);
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(value)) {
+            Hessian2Input input = new Hessian2Input(bis);
             Object o = input.readObject();
-            input.reset();
-            bis.reset();
+            input.close();
             return o.getClass().getSimpleName().equals(tClass.getSimpleName()) ? tClass.cast(o) : null;
-        } catch (Exception e) {
+        } catch (IOException e) {
             return null;
         }
     }
 
 
     static byte[] asBytes(Object o) {
-        try {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            Hessian2Output output = new Hessian2Output(bos);
             output.writeObject(o);
             output.flushBuffer();
-            byte[] bytes = bos.toByteArray();
-            output.reset();
-            bos.reset();
-            return bytes;
+            output.close();
+            return bos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
