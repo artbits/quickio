@@ -2,7 +2,7 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 
 
-QuickIO is a Java library designed based on the LevelDB embedded database. It can quickly read or write Java beans to disk, or store data as a K-V database, or store files in cans. Zero configuration, fast and efficient.
+QuickIO is a Java embedded database designed based on the LevelDB database engine. It can quickly read or write Java beans to disk, or store data as a K-V database, or store files in cans🥫. Zero configuration, fast and efficient.
 
 
 ## Download
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:0.0.9'
+    implementation 'com.github.artbits:quickio:0.1.0'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>0.0.9</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
@@ -74,10 +74,7 @@ book.setPrice(50.10f);
 db.save(book);
 
 //Batch save data.
-List<Book> books = new ArrayList<>();
-books.add(book);
-books.add(book);
-books.add(book);
+List<Book> books = Arrays.asList(book1, book2, book3);
 db.save(books);
 books.forEach(b -> System.out.println(b.id()));
 
@@ -104,6 +101,9 @@ System.out.println(res);
 
 //Batch delete by ID.
 db.delete(id1, id2, id3, id4);
+
+//Batch delete by list(element must have an id).
+db.delete(books);
 
 //Delete all data of Book type.
 db.delete(Book.class);
@@ -243,8 +243,28 @@ can.remove("test.png");
 //Traverse all files from a can.
 List<File> files = can.list();
 
+//Loop through the files in the can, 
+//return true to continue the loop, 
+//and return false to break the loop.
+can.foreach(file -> {
+    System.out.println(file.getName());
+    return true;
+});
+
 //Delete the can.
 can.destroy();
+```
+
+
+### 4. Widgets.
+```java
+//Get the unique ID and use Twitter's open-source
+//distributed ID generation algorithm (Snowflake).
+//Snowflake ID strongly depends on the machine clock.
+long id = QuickIO.id();
+
+//Get timestamp through Snowflake ID.
+long timestamp = QuickIO.toTimestamp(id);
 ```
 
 
