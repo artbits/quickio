@@ -18,6 +18,9 @@ class QuickCan {
 
 
     QuickCan(String path) {
+        if (path == null || path.isEmpty()) {
+            throw new RuntimeException("The parameter cannot be null or empty");
+        }
         try {
             this.path = path;
             Files.createDirectories(Paths.get(path));
