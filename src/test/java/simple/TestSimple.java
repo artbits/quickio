@@ -10,7 +10,7 @@ import java.util.Random;
 
 final class TestSimple {
 
-    QuickIO.DB db = QuickIO.db("school_db");
+    QuickIO.DB db = new QuickIO.DB("school_db");
 
     @Test
     void create_department_test() {
