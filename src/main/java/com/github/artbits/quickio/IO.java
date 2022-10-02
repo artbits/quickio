@@ -22,7 +22,9 @@ class IO {
 
 
     IO(String path) {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+        if (path == null || path.isEmpty()) {
+            throw new RuntimeException("The parameter cannot be null or empty");
+        }
         try {
             file = new File(path);
             factory = new Iq80DBFactory();
@@ -30,6 +32,7 @@ class IO {
             options.createIfMissing(true);
             options.cacheSize(100 * 1024 * 1024);
             db = factory.open(file, options);
+            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
