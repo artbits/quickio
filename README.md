@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.0.0'
+    implementation 'com.github.artbits:quickio:1.1.0'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -49,7 +49,7 @@ public class Book extends QuickIO.Object {
 Start using.
 ```java
 //Create QuickIO.DB object and set store directory.
-QuickIO.DB db = QuickIO.db("simple_db");
+QuickIO.DB db = new QuickIO.DB("simple_db");
 
 
 
@@ -160,7 +160,7 @@ db.destroy();
 Start using.
 ```java
 //Create QuickIO.KV object and set store directory.
-QuickIO.KV kv = QuickIO.kv("simple_kv");
+QuickIO.KV kv = new QuickIO.KV("simple_kv");
 
 
 
@@ -226,7 +226,7 @@ kv.destroy();
 ### 3. Store file.
 ```java
 //Create QuickIO.Can object and set store directory.
-QuickIO.Can can = QuickIO.can("simple_can");
+QuickIO.Can can = new QuickIO.Can("simple_can");
 
 //Save the file to a can and change the file name.
 can.put("test.png", new File("..."));
