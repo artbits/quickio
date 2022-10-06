@@ -1,4 +1,4 @@
-package simple;
+package sample;
 
 import com.github.artbits.quickio.QuickIO;
 import org.junit.jupiter.api.Test;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-final class TestSimple {
+final class TestSample {
 
     QuickIO.DB db = new QuickIO.DB("school_db");
 
