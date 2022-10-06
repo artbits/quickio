@@ -1,4 +1,4 @@
-package simple;
+package sample;
 
 import com.github.artbits.quickio.QuickIO;
 
