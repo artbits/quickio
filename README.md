@@ -49,7 +49,7 @@ public class Book extends QuickIO.Object {
 Start using.
 ```java
 //Create QuickIO.DB object and set store directory.
-QuickIO.DB db = new QuickIO.DB("simple_db");
+QuickIO.DB db = new QuickIO.DB("sample_db");
 
 
 
@@ -160,7 +160,7 @@ db.destroy();
 Start using.
 ```java
 //Create QuickIO.KV object and set store directory.
-QuickIO.KV kv = new QuickIO.KV("simple_kv");
+QuickIO.KV kv = new QuickIO.KV("sample_kv");
 
 
 
@@ -226,7 +226,7 @@ kv.destroy();
 ### 3. Store file.
 ```java
 //Create QuickIO.Can object and set store directory.
-QuickIO.Can can = new QuickIO.Can("simple_can");
+QuickIO.Can can = new QuickIO.Can("sample_can");
 
 //Save the file to a can and change the file name.
 can.put("test.png", new File("..."));
@@ -268,8 +268,8 @@ long timestamp = QuickIO.toTimestamp(id);
 ```
 
 
-## Simple
-[Here](https://github.com/artbits/quickio/tree/main/src/test/java/simple)
+## Sample
+[Here](https://github.com/artbits/quickio/tree/main/src/test/java/sample)
 
 
 ## Thanks
