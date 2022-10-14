@@ -29,7 +29,7 @@ class QuickDB extends IO {
 
     public <T extends QuickIO.Object> void save(List<T> list) {
         writeBatch(batch -> list.forEach(t -> {
-            t.id = t.id() == 0 ? QuickIO.id() : t.id();
+            t.id = (t.id() == 0) ? QuickIO.id() : t.id();
             batch.put(asBytes(t.id), asBytes(t));
         }));
     }
@@ -38,32 +38,19 @@ class QuickDB extends IO {
     @SuppressWarnings("unchecked")
     public <T extends QuickIO.Object> void update(T t , Predicate<T> predicate) {
         Map<String, Field> tMap = Tools.getFields(t.getClass());
+        tMap.remove("id");
         iteration((key, value) -> {
             T localT = (T) asObject(value, t.getClass());
             if (localT != null && predicate.test(localT)) {
                 Map<String, Field> localTMap = Tools.getFields(localT.getClass());
-                long id = 0L;
-                for (Map.Entry<String, Field> tEntry : tMap.entrySet()) {
-                    try {
-                        if (Objects.equals(tEntry.getKey(), "id")) {
-                            id = localTMap.get("id").getLong(localT);
-                            continue;
-                        }
-                        Object tObject = tEntry.getValue().get(t);
-                        if (tObject == null) {
-                            continue;
-                        }
-                        Field localField = localTMap.getOrDefault(tEntry.getKey(), null);
-                        if (localField != null) {
-                            localField.set(localT, tObject);
-                        }
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
+                tMap.forEach((tFieldName, tField) -> {
+                    Field localField = localTMap.getOrDefault(tFieldName, null);
+                    Object tFieldValue = Tools.getFieldValue(t, tField);
+                    if (localField != null && tFieldValue != null) {
+                        Tools.setFieldValue(localT, localField, tFieldValue);
                     }
-                }
-                if (id != 0) {
-                    put(asBytes(id), asBytes(localT));
-                }
+                });
+                put(asBytes(localT.id()), asBytes(localT));
             }
         });
     }
@@ -184,7 +171,7 @@ class QuickDB extends IO {
                 }
             }
         });
-        list = options.sortList(list);
+        list = options.sortList(list, tClass);
         list = options.limitList(list);
         return list;
     }
