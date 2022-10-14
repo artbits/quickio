@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public final class Options {
 
-    private String sortField;
+    private String sortFieldName;
     private long sort;
     private long limit;
 
@@ -15,8 +15,8 @@ public final class Options {
     Options() { }
 
 
-    public void sort(String field, int sort) {
-        this.sortField = field;
+    public void sort(String fieldName, int sort) {
+        this.sortFieldName = fieldName;
         this.sort = sort;
     }
 
@@ -26,28 +26,56 @@ public final class Options {
     }
 
 
-    <T> List<T> sortList(List<T> list) {
-        if (sortField == null || sort < -1 || sort == 0 || sort > 1) {
-            return list;
-        }
-        Comparator<T> comparing = Comparator.comparing(t -> {
-            try {
-                Field field = Tools.getFields(t.getClass()).get(sortField);
-                return Double.parseDouble(String.valueOf(field.get(t)));
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        comparing = (sort == 1) ? comparing : comparing.reversed();
-        return list.stream().sorted(comparing).collect(Collectors.toList());
+    <T> List<T> limitList(List<T> list) {
+        return (limit <= 0) ? list : list.stream().limit(limit).collect(Collectors.toList());
     }
 
 
-    <T> List<T> limitList(List<T> list) {
-        if (limit <= 0) {
+    <T> List<T> sortList(List<T> list, Class<T> tClass) {
+        if (list.isEmpty() || sortFieldName == null || sort < -1 || sort == 0 || sort > 1) {
             return list;
         }
-        return list.stream().limit(limit).collect(Collectors.toList());
+        Field sortField = Tools.getFields(tClass).getOrDefault(sortFieldName, null);
+        if (sortField == null) {
+            throw new RuntimeException("This field does not exist");
+        }
+        Comparator<T> comparing;
+        switch (sortField.getType().getName()) {
+            case "byte":
+            case "short":
+            case "int":
+            case "java.lang.Byte":
+            case "java.lang.Short":
+            case "java.lang.Integer":
+                comparing = Comparator.comparingInt(t -> {
+                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Tools.getFieldValue(t, field);
+                    return (int) fieldValue;
+                });
+                break;
+            case "long":
+            case "java.lang.Long":
+                comparing = Comparator.comparingLong(t -> {
+                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Tools.getFieldValue(t, field);
+                    return (long) fieldValue;
+                });
+                break;
+            case "float":
+            case "double":
+            case "java.lang.Float":
+            case "java.lang.Double":
+                comparing = Comparator.comparingDouble(t -> {
+                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Tools.getFieldValue(t, field);
+                    return (double) fieldValue;
+                });
+                break;
+            default:
+                throw new RuntimeException("This field does not support sorting");
+        }
+        comparing = (sort == 1) ? comparing : comparing.reversed();
+        return list.stream().sorted(comparing).collect(Collectors.toList());
     }
 
 }

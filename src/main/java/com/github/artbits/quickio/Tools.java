@@ -70,6 +70,24 @@ final class Tools {
     }
 
 
+    static Object getFieldValue(Object object, Field field) {
+        try {
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    static void setFieldValue(Object object, Field field, Object value) {
+        try {
+            field.set(object, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     static int getDigit(long i){
         i = i > 0 ? i : -i;
         return i == 0 ? 1 : (int) Math.log10(i) + 1;
