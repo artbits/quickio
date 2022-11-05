@@ -18,20 +18,15 @@ class QuickKV extends IO {
     @SuppressWarnings("unchecked")
     public <V> V read(String key, V defaultValue) {
         byte[] bytes = get(asBytes(key));
-        if (bytes == null) {
+        if (bytes == null || defaultValue == null) {
             return defaultValue;
         } else if (defaultValue instanceof Character) {
             Object object = asObject(bytes, String.class);
-            String s = String.valueOf(object);
-            Character character = s.charAt(0);
-            return object == null ? defaultValue : (V) character;
+            Character character = String.valueOf(object).charAt(0);
+            return (object == null) ? defaultValue : (V) character;
         } else {
-            try {
-                Object object = asObject(bytes, defaultValue.getClass());
-                return object == null ? defaultValue : (V) object;
-            } catch (NullPointerException e) {
-                return null;
-            }
+            Object object = asObject(bytes, defaultValue.getClass());
+            return (object == null) ? defaultValue : (V) object;
         }
     }
 

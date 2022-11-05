@@ -40,13 +40,11 @@ public final class Options {
             throw new RuntimeException("This field does not exist");
         }
         Comparator<T> comparing;
-        switch (sortField.getType().getName()) {
+        switch (sortField.getType().getSimpleName().toLowerCase()) {
             case "byte":
             case "short":
             case "int":
-            case "java.lang.Byte":
-            case "java.lang.Short":
-            case "java.lang.Integer":
+            case "integer":
                 comparing = Comparator.comparingInt(t -> {
                     Field field = Tools.getFields(t.getClass()).get(sortFieldName);
                     Object fieldValue = Tools.getFieldValue(t, field);
@@ -54,7 +52,6 @@ public final class Options {
                 });
                 break;
             case "long":
-            case "java.lang.Long":
                 comparing = Comparator.comparingLong(t -> {
                     Field field = Tools.getFields(t.getClass()).get(sortFieldName);
                     Object fieldValue = Tools.getFieldValue(t, field);
@@ -63,8 +60,6 @@ public final class Options {
                 break;
             case "float":
             case "double":
-            case "java.lang.Float":
-            case "java.lang.Double":
                 comparing = Comparator.comparingDouble(t -> {
                     Field field = Tools.getFields(t.getClass()).get(sortFieldName);
                     Object fieldValue = Tools.getFieldValue(t, field);
