@@ -20,6 +20,10 @@ public final class QuickIO {
         public final long timestamp() {
             return toTimestamp(id);
         }
+
+        public final String toJson() {
+            return Tools.toJson(this);
+        }
     }
 
 
