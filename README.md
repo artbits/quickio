@@ -66,8 +66,10 @@ db.save(book);
 
 //Saved successfully. The value of ID is not zero.
 System.out.println(book.id());
-//Save succeeded. Get the timestamp when saving.
+//Saved successfully. Get the timestamp when saving.
 System.out.println(book.timestamp());
+//Java bean to json.
+System.out.println(book.toJson());
 
 //Update the stored data according to the ID.
 book.setPrice(50.10f);
