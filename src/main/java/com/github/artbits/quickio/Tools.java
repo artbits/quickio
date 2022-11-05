@@ -2,6 +2,7 @@ package com.github.artbits.quickio;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -82,6 +83,20 @@ final class Tools {
     static void setFieldValue(Object object, Field field, Object value) {
         try {
             field.set(object, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    static <T extends QuickIO.Object> String toJson(T t) {
+        try {
+            Map<String, Object> jsonMap = new HashMap<>();
+            Map<String, Field> fieldMap = getFields(t.getClass());
+            for (Map.Entry<String, Field> entry : fieldMap.entrySet()) {
+                jsonMap.put(entry.getKey(), entry.getValue().get(t));
+            }
+            return new JSONObject(jsonMap).toString();
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
