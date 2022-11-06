@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.3'
+    implementation 'com.github.artbits:quickio:1.1.4'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
 </dependency>
 ```
 
@@ -278,6 +278,7 @@ long timestamp = QuickIO.toTimestamp(id);
 Open source projects used by QuickIO.
 + [LevelDB](https://github.com/dain/leveldb)
 + [Hessian](http://hessian.caucho.com/)
++ [JSON In Java](https://www.json.org/json-en.html)
 
 
 # License
