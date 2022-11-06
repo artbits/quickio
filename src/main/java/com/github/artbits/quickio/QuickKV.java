@@ -18,7 +18,7 @@ class QuickKV extends IO {
     @SuppressWarnings("unchecked")
     public <V> V read(String key, V defaultValue) {
         byte[] bytes = get(asBytes(key));
-        if (bytes == null || defaultValue == null) {
+        if (bytes == null) {
             return defaultValue;
         } else if (defaultValue instanceof Character) {
             Object object = asObject(bytes, String.class);
