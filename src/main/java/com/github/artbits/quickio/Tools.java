@@ -93,8 +93,8 @@ final class Tools {
         try {
             Map<String, Object> jsonMap = new HashMap<>();
             Map<String, Field> fieldMap = getFields(t.getClass());
-            for (Map.Entry<String, Field> entry : fieldMap.entrySet()) {
-                jsonMap.put(entry.getKey(), entry.getValue().get(t));
+            for (Field field : fieldMap.values()) {
+                jsonMap.put(field.getName(), field.get(t));
             }
             return new JSONObject(jsonMap).toString();
         } catch (IllegalAccessException e) {
