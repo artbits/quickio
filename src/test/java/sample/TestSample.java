@@ -252,6 +252,18 @@ final class TestSample {
     }
 
     @Test
+    void count_all_students_test() {
+        int i = db.count(Student.class);
+        System.out.println(i);
+    }
+
+    @Test
+    void count_students_by_condition() {
+        int i = db.count(Student.class, s -> s.gender == Student.Gender.FEMALE);
+        System.out.println(i);
+    }
+
+    @Test
     void close_test() {
         try {
             db.close();
