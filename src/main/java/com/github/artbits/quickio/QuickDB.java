@@ -2,6 +2,7 @@ package com.github.artbits.quickio;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -94,13 +95,16 @@ class QuickDB extends IO {
     }
 
 
-    public <T extends QuickIO.Object> T findFirst(Class<T> tClass) {
+    public <T extends QuickIO.Object> T findFirst(Class<T> tClass, Predicate<T> predicate) {
         final long[] minKey = {Long.MAX_VALUE};
         AtomicReference<T> minT = new AtomicReference<>();
         iteration((key, value) -> {
             long tKey = Tools.asLong(key);
             T t = asObject(value, tClass);
             if (t != null && tKey < minKey[0]) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
                 minKey[0] = tKey;
                 minT.set(t);
             }
@@ -109,18 +113,31 @@ class QuickDB extends IO {
     }
 
 
-    public <T extends QuickIO.Object> T findLast(Class<T> tClass) {
+    public <T extends QuickIO.Object> T findFirst(Class<T> tClass) {
+        return findFirst(tClass, null);
+    }
+
+
+    public <T extends QuickIO.Object> T findLast(Class<T> tClass, Predicate<T> predicate) {
         final long[] maxKey = {Long.MIN_VALUE};
         AtomicReference<T> maxT = new AtomicReference<>();
         iteration((key, value) -> {
             long tKey = Tools.asLong(key);
             T t = asObject(value, tClass);
             if (t != null && tKey > maxKey[0]) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
                 maxKey[0] = tKey;
                 maxT.set(t);
             }
         });
         return maxT.get();
+    }
+
+
+    public <T extends QuickIO.Object> T findLast(Class<T> tClass) {
+        return findLast(tClass, null);
     }
 
 
@@ -193,6 +210,26 @@ class QuickDB extends IO {
         byte[] key = asBytes(id);
         byte[] value = get(key);
         return (value != null) ? asObject(value, tClass) : null;
+    }
+
+
+    public <T extends QuickIO.Object> int count(Class<T> tClass, Predicate<T> predicate) {
+        AtomicInteger count = new AtomicInteger(0);
+        iteration((key, value) -> {
+            T t = asObject(value, tClass);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
+                count.incrementAndGet();
+            }
+        });
+        return count.get();
+    }
+
+
+    public <T extends QuickIO.Object> int count(Class<T> tClass) {
+        return count(tClass, null);
     }
 
 }
