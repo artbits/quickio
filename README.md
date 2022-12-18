@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.5'
+    implementation 'com.github.artbits:quickio:1.1.6'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
 </dependency>
 ```
 
@@ -37,12 +37,15 @@ Maven:
 ### 1. Store Java beans.
 Create a Java bean that needs to be stored or read, and extends the ``QuickIO.Object`` class.
 ```java
-public class Book extends QuickIO.Object {
-    private String name;
-    private String author;
-    private Float price;
-    private Integer pages;
-    //Getter and Setter
+public class User extends QuickIO.Object {
+    Integer age;
+    String name;
+    String gender;
+    String email;
+
+    User(Consumer<User> consumer) {
+        consumer.accept(this);
+    }
 }
 ```
 
@@ -54,43 +57,43 @@ QuickIO.DB db = new QuickIO.DB("sample_db");
 
 
 //Save:
-//Create Book object and set data.
-Book book = new Book();
-book.setName("C Primer Plus");
-book.setAuthor("Stephen Prata");
-book.setPrice(108.00f);
-book.setPages(541);
+//Create User object and set data.
+User user = new User(u -> {
+    u.name = "LiMing";
+    u.age = 18;
+    u.gender = "male";
+    u.email = "liming@foxmail.com";
+});
 
 //Save data.
-db.save(book);
+db.save(user);
 
 //Saved successfully. The value of ID is not zero.
-System.out.println(book.id());
+System.out.println(user.id());
 //Saved successfully. Get the timestamp when saving.
-System.out.println(book.timestamp());
+System.out.println(user.timestamp());
 //Java bean to json.
-System.out.println(book.toJson());
+System.out.println(user.toJson());
 
 //Update the stored data according to the ID.
-book.setPrice(50.10f);
-db.save(book);
+user.age = 20;
+db.save(user);
 
 //Batch save data.
-List<Book> books = Arrays.asList(book1, book2, book3);
-db.save(books);
-books.forEach(b -> System.out.println(b.id()));
+List<User> users = Arrays.asList(user1, user2, user3);
+db.save(users);
+users.forEach(u -> System.out.println(u.id()));
 
 
 
 //Update:
-//New a Book object and set the data to be modified.
-Book book = new Book();
-book.setPrice(249.99f);
+//New a User object and set the data to be modified.
+User user = new User(u -> u.age = 25);
 
 //Update data by condition.
-db.update(book, b -> {
-    boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
-    boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
+db.update(user, u -> {
+    boolean b1 = Objects.equals(u.name, "LiMing");
+    boolean b2 = Objects.equals(u.email, "liming@foxmail.com");
     return b1 && b2;
 });
 
@@ -98,56 +101,71 @@ db.update(book, b -> {
 
 //Delete:
 //Delete by ID. Deletion succeeded, the result is true.
-boolean res = db.delete(book.id());
+boolean res = db.delete(user.id());
 System.out.println(res);
 
 //Batch delete by ID.
 db.delete(id1, id2, id3, id4);
 
 //Batch delete by list(element must have an id).
-db.delete(books);
+db.delete(users);
 
-//Delete all data of Book type.
-db.delete(Book.class);
+//Delete all data of User type.
+db.delete(User.class);
 
 //Delete by condition.
-db.delete(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+db.delete(User.class, u -> u.age >= 16 && u.age <= 18);
 
 
 
 //Find:
-//Find the first Java bean of type Book.
-Book book1 = db.findFirst(Book.class);
+//Find the first Java bean of type User.
+User user1 = db.findFirst(User.class);
+
+//Find the first Java bean of User type by condition.
+User user2 = db.findFirst(User.class, u -> u.age >= 18);
 
 //Find the last Java bean of type Book.
-Book book2 = db.findLast(Book.class);
+User user3 = db.findLast(User.class);
 
-//Find the first Java bean of Book type by criteria.
-Book book3 = db.findOne(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+//Find the last Java bean of User type by condition.
+User user4 = db.findLast(User.class, u -> u.age >= 18);
 
-//Find the Java bean of Book type with the specified ID.
-Book book4 = db.find(Book.class, 1001657291650502656L);
+//Find Java beans with unique User type by conditions.
+User user5 = db.findOne(User.class, u -> "liming@gmail.com".equals(u.email));
 
-//Find all Java beans of Book type.
-List<Book> books1 = db.find(Book.class);
+//Find the Java bean of User type with the specified ID.
+User user6 = db.find(User.class, 1001657291650502656L);
 
-//Batch find Java beans of Book type by ID.
-List<Book> books2 = db.find(Book.class, id1, id2, id3, id4);
+//Find all Java beans of User type.
+List<User> users1 = db.find(User.class);
 
-//Batch find Java beans of Book type by conditions.
-List<Book> books3 = db.find(Book.class, b -> Objects.equals(b.getName(), "C Primer Plus"));
+//Batch find Java beans of User type by ID.
+List<User> users2 = db.find(User.class, id1, id2, id3, id4);
 
-//Batch find Java beans of Book type by conditions.
+//Batch find Java beans of User type by conditions.
+List<User> users3 = db.find(User.class, u -> u.age >= 18);
+
+//Batch find Java beans of User type by conditions.
 //Sort, 1 is asc, and -1 is desc.
 //Can limit the quantity.
-List<Book> books4 = db.find(Book.class, b -> {
-    boolean b1 = Objects.equals(b.getName(), "C Primer Plus");
-    boolean b2 = Objects.equals(b.getAuthor(), "Stephen Prata");
+List<User> users4 = db.find(User.class, u -> {
+    boolean b1 = u.gender.equals("male");
+    boolean b2 = u.email.contains("@gmail.com");
     return b1 && b2;
 }, options -> {
-    options.sort("price", 1);
+    options.sort("age", 1);
     options.limit(10);
 });
+
+
+
+//Conut:
+//Count the number of User type data.
+int res1 = db.count(User.class);
+
+//Count the number of User type data by condition.
+int res2 = db.count(User.class, u -> u.age >= 18);
 
 
 
