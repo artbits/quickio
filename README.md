@@ -38,10 +38,10 @@ Maven:
 Create a Java bean that needs to be stored or read, and extends the ``QuickIO.Object`` class.
 ```java
 public class User extends QuickIO.Object {
-    Integer age;
-    String name;
-    String gender;
-    String email;
+    public Integer age;
+    public String name;
+    public String gender;
+    public String email;
 
     public User(Consumer<User> consumer) {
         consumer.accept(this);
@@ -213,8 +213,8 @@ boolean b2 = kv.containsKey("Long");
 //Store Java beans.
 //Create object and use the serializable interface.
 public class User implements Serializable {
-    String name;
-    Integer age;
+    public String name;
+    public Integer age;
 
     public User(Consumer<User> consumer) {
         consumer.accept(this);
