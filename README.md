@@ -43,7 +43,7 @@ public class User extends QuickIO.Object {
     String gender;
     String email;
 
-    User(Consumer<User> consumer) {
+    public User(Consumer<User> consumer) {
         consumer.accept(this);
     }
 }
