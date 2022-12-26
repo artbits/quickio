@@ -173,24 +173,20 @@ class QuickDB extends IO {
     }
 
 
-    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<Options> consumer) {
-        Options options = new Options();
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<FindOptions> consumer) {
+        FindOptions<T> options = new FindOptions<>(tClass);
         consumer.accept(options);
         List<T> list = new ArrayList<>();
-        List<T> finalList = list;
         iteration((key, value) -> {
             T t = asObject(value, tClass);
             if (t != null) {
-                if (predicate == null) {
-                    finalList.add(t);
-                } else if (predicate.test(t)) {
-                    finalList.add(t);
+                if (predicate != null && !predicate.test(t)) {
+                    return;
                 }
+                list.add(t);
             }
         });
-        list = options.sortList(list, tClass);
-        list = options.limitList(list);
-        return list;
+        return options.get(list);
     }
 
 
