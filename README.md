@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.6'
+    implementation 'com.github.artbits:quickio:1.1.7'
 }
 ```
 
@@ -27,7 +27,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.6</version>
+    <version>1.1.7</version>
 </dependency>
 ```
 
@@ -148,14 +148,19 @@ List<User> users3 = db.find(User.class, u -> u.age >= 18);
 
 //Batch find Java beans of User type by conditions.
 //Sort, 1 is asc, and -1 is desc.
-//Can limit the quantity.
+//The number of skipped elements can be set.
+//The number of limit elements can be set.
 List<User> users4 = db.find(User.class, u -> {
     boolean b1 = u.gender.equals("male");
     boolean b2 = u.email.contains("@gmail.com");
     return b1 && b2;
 }, options -> {
-    options.sort("age", 1);
-    options.limit(10);
+    options.sort("age", 1).skip(3).limit(10);
+});
+
+//The find condition can be null. Only the FindOptions parameter is set.
+List<User> users5 = db.find(User.class, null, options -> {
+    options.sort("age", 1).skip(3).limit(10);
 });
 
 
