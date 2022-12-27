@@ -93,7 +93,7 @@ users.forEach(u -> System.out.println(u.id()));
 //新建User对象，并设置要修改的数据
 User user = new User(u -> u.age = 25);
 
-//通过条件更新数据
+//按条件更新数据
 db.update(user, u -> {
     boolean b1 = Objects.equals(u.name, "LiMing");
     boolean b2 = Objects.equals(u.email, "liming@foxmail.com");
