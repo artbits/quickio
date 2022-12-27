@@ -251,7 +251,7 @@ kv.destroy();
 ```
 
 
-### 3. Store file.
+### 3. 存储文件
 ```java
 //创建QuickIO.Can对象，并设置存储目录
 QuickIO.Can can = new QuickIO.Can("sample_can");
