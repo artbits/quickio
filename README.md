@@ -1,7 +1,10 @@
-# QuickIO
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
+[![](https://img.shields.io/badge/JDK-%3E%3D%208-orange)](https://jdk.java.net/)
+[![](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
+English | [中文](README_CN.md)
 
+# QuickIO
 QuickIO is a Java embedded database designed based on the LevelDB database engine. It can quickly read or write Java beans to disk, or store data as a K-V database, or store files in cans🥫. Zero configuration, fast and efficient.
 
 
@@ -125,7 +128,7 @@ User user1 = db.findFirst(User.class);
 //Find the first Java bean of User type by condition.
 User user2 = db.findFirst(User.class, u -> u.age >= 18);
 
-//Find the last Java bean of type Book.
+//Find the last Java bean of type User.
 User user3 = db.findLast(User.class);
 
 //Find the last Java bean of User type by condition.
