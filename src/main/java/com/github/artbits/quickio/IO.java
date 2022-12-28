@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -22,10 +23,8 @@ class IO {
 
 
     IO(String path) {
-        if (path == null || path.isEmpty()) {
-            throw new RuntimeException("The parameter cannot be null or empty");
-        }
         try {
+            Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The path cannot be null or empty"));
             file = new File(path);
             factory = new Iq80DBFactory();
             Options options = new Options();
@@ -33,7 +32,7 @@ class IO {
             options.cacheSize(100 * 1024 * 1024);
             db = factory.open(file, options);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

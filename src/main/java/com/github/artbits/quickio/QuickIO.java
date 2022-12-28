@@ -29,21 +29,21 @@ public final class QuickIO {
 
     public static class DB extends QuickDB {
         public DB(String path) {
-            super(DB_PATH + path);
+            super((path == null || path.isEmpty()) ? null : DB_PATH + path);
         }
     }
 
 
     public static class KV extends QuickKV {
         public KV(String path) {
-            super(KV_PATH + path);
+            super((path == null || path.isEmpty()) ? null : KV_PATH + path);
         }
     }
 
 
     public static class Can extends QuickCan {
         public Can(String path) {
-            super(CAN_PATH + path);
+            super((path == null || path.isEmpty()) ? null : CAN_PATH + path);
         }
     }
 

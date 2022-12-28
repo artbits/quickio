@@ -10,6 +10,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 class QuickCan {
@@ -18,13 +19,10 @@ class QuickCan {
 
 
     QuickCan(String path) {
-        if (path == null || path.isEmpty()) {
-            throw new RuntimeException("The parameter cannot be null or empty");
-        }
         try {
-            this.path = path;
+            this.path = Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The path cannot be null or empty"));
             Files.createDirectories(Paths.get(path));
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

@@ -3,6 +3,7 @@ package com.github.artbits.quickio;
 import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,10 +47,10 @@ public final class FindOptions<T> {
 
 
     List<T> get(List<T> list) {
-        if (list.isEmpty()) {
+        Stream<T> stream = (list == null || list.isEmpty()) ? null : list.stream();
+        if (stream == null) {
             return list;
         }
-        Stream<T> stream = list.stream();
         if (sortValue != 0) {
             Comparator<T> comparator = createComparator();
             comparator = (sortValue == 1) ? comparator : comparator.reversed();
@@ -66,11 +67,9 @@ public final class FindOptions<T> {
     }
 
 
-    <K> Comparator<K> createComparator() {
+    private <K> Comparator<K> createComparator() {
         Field sortField = Tools.getFields(tClass).getOrDefault(sortFieldName, null);
-        if (sortField == null) {
-            throw new RuntimeException("This field does not exist");
-        }
+        Optional.ofNullable(sortField).orElseThrow(() -> new RuntimeException("This field does not exist"));
         switch (sortField.getType().getSimpleName().toLowerCase()) {
             case "byte":
             case "short":
