@@ -76,36 +76,33 @@ class QuickDB extends IO {
     }
 
 
-    public <T extends QuickIO.Object> void delete(Class<T> tClass) {
+    public <T extends QuickIO.Object> void delete(Class<T> tClass, Predicate<T> predicate) {
         writeBatch(batch -> iteration((key, value) -> {
-            if (asObject(value, tClass) != null) {
+            T t = asObject(value, tClass);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
                 batch.delete(key);
             }
         }));
     }
 
 
-    public <T extends QuickIO.Object> void delete(Class<T> tClass, Predicate<T> predicate) {
-        writeBatch(batch -> iteration((key, value) -> {
-            T t = asObject(value, tClass);
-            if (t != null && predicate.test(t)) {
-                batch.delete(key);
-            }
-        }));
+    public <T extends QuickIO.Object> void delete(Class<T> tClass) {
+        delete(tClass, null);
     }
 
 
     public <T extends QuickIO.Object> T findFirst(Class<T> tClass, Predicate<T> predicate) {
-        final long[] minKey = {Long.MAX_VALUE};
         AtomicReference<T> minT = new AtomicReference<>();
         iteration((key, value) -> {
-            long tKey = Tools.asLong(key);
+            long id = Tools.asLong(key);
             T t = asObject(value, tClass);
-            if (t != null && tKey < minKey[0]) {
+            if (t != null && (minT.get() == null || id < minT.get().id())) {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                minKey[0] = tKey;
                 minT.set(t);
             }
         });
@@ -119,16 +116,14 @@ class QuickDB extends IO {
 
 
     public <T extends QuickIO.Object> T findLast(Class<T> tClass, Predicate<T> predicate) {
-        final long[] maxKey = {Long.MIN_VALUE};
         AtomicReference<T> maxT = new AtomicReference<>();
         iteration((key, value) -> {
-            long tKey = Tools.asLong(key);
+            long id = Tools.asLong(key);
             T t = asObject(value, tClass);
-            if (t != null && tKey > maxKey[0]) {
+            if (t != null && (maxT.get() == null || id > maxT.get().id())) {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                maxKey[0] = tKey;
                 maxT.set(t);
             }
         });
@@ -149,33 +144,9 @@ class QuickDB extends IO {
     }
 
 
-    public <T extends QuickIO.Object> List<T> find(Class<T> tClass) {
-        List<T> list = new ArrayList<>();
-        iteration((key, value) -> {
-            T t = asObject(value, tClass);
-            if (t != null) {
-                list.add(t);
-            }
-        });
-        return list;
-    }
-
-
-    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate) {
-        List<T> list = new ArrayList<>();
-        iteration((key, value) -> {
-            T t = asObject(value, tClass);
-            if (t != null && predicate.test(t)) {
-                list.add(t);
-            }
-        });
-        return list;
-    }
-
-
     public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate, Consumer<FindOptions> consumer) {
-        FindOptions<T> options = new FindOptions<>(tClass);
-        consumer.accept(options);
+        FindOptions<T> options = (consumer != null) ? new FindOptions<>(tClass) : null;
+        Optional.ofNullable(consumer).ifPresent(c -> c.accept(options));
         List<T> list = new ArrayList<>();
         iteration((key, value) -> {
             T t = asObject(value, tClass);
@@ -186,7 +157,17 @@ class QuickDB extends IO {
                 list.add(t);
             }
         });
-        return options.get(list);
+        return (consumer != null) ? options.get(list) : list;
+    }
+
+
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, Predicate<T> predicate) {
+        return find(tClass, predicate, null);
+    }
+
+
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass) {
+        return find(tClass, null, null);
     }
 
 
