@@ -1,20 +1,31 @@
+/**
+ * Copyright 2022 Zhang Guanhu
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.artbits.quickio;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 final class Tools {
@@ -90,39 +101,6 @@ final class Tools {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-
-    static <T> Map<String, Object> toMap(T t) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        Class<?> clazz = t.getClass();
-        while (clazz != null) {
-            for (Field field : clazz.getDeclaredFields()) {
-                field.setAccessible(true);
-                String key = field.getName();
-                Object value = getFieldValue(t, field);
-                if (value == null) {
-                } else if (value instanceof Byte || value instanceof Character
-                        || value instanceof Short || value instanceof Integer
-                        || value instanceof Long || value instanceof Boolean
-                        || value instanceof Float || value instanceof Double
-                        || value instanceof String || value instanceof BigInteger
-                        || value instanceof BigDecimal || value instanceof Enum
-                        || value instanceof Collection || value instanceof Map
-                        || value.getClass().isArray()) {
-                    map.put(key, value);
-                } else {
-                    map.put(key, toMap(value));
-                }
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return map;
-    }
-
-
-    static <T extends QuickIO.Object> String toJson(T t) {
-        return new JSONObject(toMap(t)).toString();
     }
 
 

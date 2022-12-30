@@ -1,0 +1,226 @@
+/**
+ * Copyright 2022 Zhang Guanhu
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.github.artbits.quickio;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.function.BiConsumer;
+
+public final class JSONObject {
+
+    private final Map<String, String> map = new LinkedHashMap<>();
+
+
+    public <T> JSONObject(T t) {
+        initMap();
+        ergodicField(t, this::putMap);
+    }
+
+
+    private <T> void ergodicField(T t, BiConsumer<String, Object> consumer) {
+        try {
+            Class<?> clazz = t.getClass();
+            while (clazz != null) {
+                for (Field field : clazz.getDeclaredFields()) {
+                    field.setAccessible(true);
+                    consumer.accept(field.getName(), field.get(t));
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void initMap() {
+        map.put("\"id\"", null);
+    }
+
+
+    private void putMap(String fieldName, Object fieldValue) {
+        if (fieldName == null || fieldValue == null || fieldValue instanceof Enum<?>) {
+            return;
+        } else {
+            fieldName = "\"" + fieldName + "\"";
+        }
+
+        if (fieldValue instanceof String || fieldValue instanceof Character) {
+            if (!String.valueOf(fieldValue).equals("\u0000")) {
+                map.put(fieldName, "\"" + fieldValue + "\"");
+            }
+            return;
+        }
+        if (fieldValue instanceof Byte || fieldValue instanceof Short
+                || fieldValue instanceof Integer || fieldValue instanceof Long
+                || fieldValue instanceof Boolean || fieldValue instanceof Float
+                || fieldValue instanceof Double || fieldValue instanceof BigInteger
+                || fieldValue instanceof BigDecimal) {
+            map.put(fieldName, String.valueOf(fieldValue));
+            return;
+        }
+        if (fieldValue.getClass().isArray()) {
+            map.put(fieldName, arrayToJSONString(fieldValue));
+            return;
+        }
+        if (fieldValue instanceof Collection<?>) {
+            map.put(fieldName, collectionToJSONString((Collection<?>) fieldValue));
+            return;
+        }
+        if (fieldValue instanceof Map<?, ?>) {
+            map.put(fieldName, mapToJSONString((Map<?, ?>) fieldValue));
+            return;
+        }
+        map.put(fieldName, new JSONObject(fieldValue).toString());
+    }
+
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder().append("{");
+        map.forEach((k, v) -> Optional.ofNullable(v).ifPresent(s -> builder.append(k).append(":").append(v).append(",")));
+        return builder.deleteCharAt(builder.length() - 1).append("}").toString();
+    }
+
+
+    private static String charArrayToJSONString(char[] chars) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (char c : chars) {
+            builder.append("\"").append(c).append("\"").append(",");
+        }
+        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+    }
+
+
+    private static <T> String objectArrayToJSONString(T[] arrays) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (Object o : arrays) {
+            ifTextType(o, () -> {
+                builder.append("\"").append(o).append("\"").append(",");
+            }, () -> {
+                builder.append(new JSONObject(o)).append(",");
+            });
+        }
+        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+    }
+
+
+    private static String arrayToJSONString(Object object) {
+        if (object instanceof byte[]) {
+            return Arrays.toString((byte[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof short[]) {
+            return Arrays.toString((short[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof int[]) {
+            return Arrays.toString((int[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof long[]) {
+            return Arrays.toString((long[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof float[]) {
+            return Arrays.toString((float[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof double[]) {
+            return Arrays.toString((double[]) object).replaceAll(" ", "");
+        }
+        if (object instanceof boolean[]) {
+            return Arrays.toString((boolean[]) object);
+        }
+        if (object instanceof char[]) {
+            return charArrayToJSONString((char[]) object);
+        }
+        if (object instanceof Object[]) {
+            return objectArrayToJSONString((Object[]) object);
+        }
+        return null;
+    }
+
+
+    private static String collectionToJSONString(Collection<?> collection) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (Object o : collection) {
+            ifBasicType(o, () -> {
+                builder.append(o).append(",");
+            }, () -> {
+                ifTextType(o, () -> {
+                    builder.append("\"").append(o).append("\"").append(",");
+                }, () -> {
+                    builder.append(new JSONObject(o)).append(",");
+                });
+            });
+        }
+        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+    }
+
+
+    private static String mapToJSONString(Map<?, ?> map) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+            builder.append("\"").append(entry.getKey()).append("\":");
+            Object value = entry.getValue();
+            ifBasicType(value, () -> {
+                builder.append(value).append(",");
+            }, () -> {
+                ifTextType(value, () -> {
+                    builder.append("\"").append(value).append("\"").append(",");
+                }, () -> {
+                    builder.append(new JSONObject(value)).append(",");
+                });
+            });
+        }
+        return builder.deleteCharAt(builder.length() - 1).append("}").toString();
+    }
+
+
+    private static void ifBasicType(Object o, Runnable runnable1, Runnable runnable2) {
+        if (o instanceof Byte || o instanceof Short || o instanceof Integer
+                || o instanceof Long || o instanceof Boolean || o instanceof Float
+                || o instanceof Double || o instanceof BigInteger || o instanceof BigDecimal) {
+            if (runnable1 != null) {
+                runnable1.run();
+            }
+        } else {
+            if (runnable2 != null) {
+                runnable2.run();
+            }
+        }
+    }
+
+
+    private static void ifTextType(Object o, Runnable runnable1, Runnable runnable2) {
+        if (o instanceof String || o instanceof Character) {
+            if (runnable1 != null) {
+                runnable1.run();
+            }
+        } else {
+            if (runnable2 != null) {
+                runnable2.run();
+            }
+        }
+    }
+
+}
