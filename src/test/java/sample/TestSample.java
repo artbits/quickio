@@ -43,7 +43,7 @@ final class TestSample {
         department.studentIds.add(student.id());
         db.save(department);
 
-        System.out.println(student);
+        System.out.println(student.toJson());
     }
 
     @Test
@@ -106,7 +106,7 @@ final class TestSample {
     @Test
     void find_all_students_test() {
         List<Student> students = db.find(Student.class);
-        students.forEach(System.out::println);
+        students.forEach(s -> System.out.println(s.toJson()));
     }
 
     @Test
@@ -124,19 +124,19 @@ final class TestSample {
         }
 
         List<Student> students = db.find(Student.class, studentIds);
-        students.forEach(System.out::println);
+        students.forEach(s -> System.out.println(s.toJson()));
     }
 
     @Test
     void find_first_student_test() {
         Student student = db.findFirst(Student.class);
-        System.out.println(student);
+        System.out.println(student.toJson());
     }
 
     @Test
     void find_last_student_test() {
         Student student = db.findLast(Student.class);
-        System.out.println(student);
+        System.out.println(student.toJson());
     }
 
     @Test
@@ -144,7 +144,7 @@ final class TestSample {
         List<Student> students = db.find(Student.class);
         students.forEach(student -> {
             Score score = db.find(Score.class, student.scoreId);
-            System.out.println(student.name + "   " + score);
+            System.out.println(student.name + "   " + score.toJson());
         });
     }
 
@@ -197,7 +197,7 @@ final class TestSample {
         boolean b = db.delete(department.id());
         System.out.println(b);
 
-        db.find(Department.class).forEach(d -> System.out.println(d.name));
+        db.find(Department.class).forEach(d -> System.out.println(d.toJson()));
     }
 
     @Test
@@ -217,7 +217,7 @@ final class TestSample {
             departmentIds[i] = departments.get(i).id();
         }
         db.delete(departmentIds);
-        db.find(Department.class).forEach(d -> System.out.println(d.name));
+        db.find(Department.class).forEach(d -> System.out.println(d.toJson()));
     }
 
     @Test
@@ -231,7 +231,7 @@ final class TestSample {
         }));
         db.save(departments);
         db.delete(departments);
-        db.find(Department.class).forEach(d -> System.out.println(d.name));
+        db.find(Department.class).forEach(d -> System.out.println(d.toJson()));
     }
 
     @Test
