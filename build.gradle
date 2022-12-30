@@ -14,7 +14,6 @@ repositories {
 dependencies {
     implementation 'org.iq80.leveldb:leveldb:0.12'
     implementation 'com.caucho:hessian:4.0.66'
-    implementation 'org.json:json:20220924'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }
