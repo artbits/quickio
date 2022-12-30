@@ -5,7 +5,17 @@
 English | [中文](README_CN.md)
 
 # QuickIO
-QuickIO is a Java embedded database designed based on the LevelDB database engine. It can quickly read or write Java beans to disk, or store data as a K-V database, or store files in cans🥫. Zero configuration, fast and efficient.
+QuickIO is a versatile embedded database, and the bottom layer is designed based on the LevelDB engine and Java NIO. Support the storage of Java bean, Key-Value format and file type data. Zero configuration, Java code operation, fast and efficient.
+
++ Advantage
+   + Embedded databases like ``SQLite`` do not need to be installed and configured.
+   + Like ``MongoDB`` or [Diskv](https://github.com/peterbourgon/diskv) same NoSQL database, easy to use.
+   + Support store Java bean, Key-Value format and file type data.
+   + Simple API, using Java lambda expressions to operate gracefully.
+   + Fast reading and writing, meeting the use scenarios of small and medium data volumes.
++ Shortcoming
+   + Non relational database, does not support SQL statements, index and transaction.
+   + Only single process operation is supported, not multiple processes.
 
 
 ## Download
@@ -16,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.8'
+    implementation 'com.github.artbits:quickio:1.1.9'
 }
 ```
 
@@ -30,7 +40,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.8</version>
+    <version>1.1.9</version>
 </dependency>
 ```
 
@@ -38,8 +48,8 @@ Maven:
 ## How do I use QuickIO?
 
 ### 1. Store Java beans.
-Create a Java bean that needs to be stored or read, and extends the ``QuickIO.Object`` class.
 ```java
+//Create a Java bean, and extends the QuickIO.Object class.
 public class User extends QuickIO.Object {
     public Integer age;
     public String name;
@@ -50,10 +60,9 @@ public class User extends QuickIO.Object {
         consumer.accept(this);
     }
 }
-```
 
-Start using.
-```java
+
+
 //Create QuickIO.DB object and set store directory.
 QuickIO.DB db = new QuickIO.DB("sample_db");
 
@@ -185,7 +194,6 @@ db.destroy();
 ```
 
 ### 2. Store K-V type data.
-Start using.
 ```java
 //Create QuickIO.KV object and set store directory.
 QuickIO.KV kv = new QuickIO.KV("sample_kv");
@@ -293,6 +301,14 @@ long id = QuickIO.id();
 
 //Get timestamp through Snowflake ID.
 long timestamp = QuickIO.toTimestamp(id);
+
+//Java bean to JSON
+String json = QuickIO.toJson(new User(u -> {
+    u.name = "LiMing";
+    u.age = 18;
+    u.gender = "male";
+    u.email = "liming@gmail.com";
+}));
 ```
 
 
@@ -304,7 +320,6 @@ long timestamp = QuickIO.toTimestamp(id);
 Open source projects used by QuickIO.
 + [LevelDB](https://github.com/dain/leveldb)
 + [Hessian](http://hessian.caucho.com/)
-+ [JSON In Java](https://www.json.org/json-en.html)
 
 
 # License

@@ -5,7 +5,17 @@
 [English](README.md) | 中文
 
 # QuickIO
-QuickIO是基于LevelDB数据库引擎设计的Java嵌入式数据库。它可以快速地将Java bean读写到磁盘中，或作为K-V数据库进行数据存储，又或将文件存储在罐头中🥫。零配置，快速高效。
+QuickIO是一个多功能嵌入式数据库，底层基于LevelDB引擎和Java NIO设计。支持存储Java bean、Key-Value格式和文件类型的数据。零配置，使用Java代码操作，快速高效。
+
++ 优点
+   + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装和配置
+   + 像 ``MongoDB`` 或 [Diskv](https://github.com/peterbourgon/diskv) 一样的NoSQL数据库，使用简单
+   + 支持存储Java bean、Key-Value格式和文件类型的数据
+   + 简易的API，使用Java Lambda表达式优雅操作
+   + 读写快速，满足中小型数据量的使用场景
++ 缺点
+   + 非关系型数据库，不支持SQL语句、索引和事务
+   + 只支持单进程运行，不支持多进程
 
 
 ## 下载
@@ -16,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.8'
+    implementation 'com.github.artbits:quickio:1.1.9'
 }
 ```
 
@@ -30,7 +40,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.8</version>
+    <version>1.1.9</version>
 </dependency>
 ```
 
@@ -38,8 +48,8 @@ Maven:
 ## 如何使用QuickIO？
 
 ### 1. 存储Java bean
-创建一个需要在磁盘中读写的Java bean，并继承 ``QuickIO.Object`` 类。
 ```java
+//创建一个Java bean，并继承 QuickIO.Object 类
 public class User extends QuickIO.Object {
     public Integer age;
     public String name;
@@ -50,10 +60,9 @@ public class User extends QuickIO.Object {
         consumer.accept(this);
     }
 }
-```
 
-开始使用。
-```java
+
+
 //创建QuickIO.DB对象，并设置存储目录
 QuickIO.DB db = new QuickIO.DB("sample_db");
 
@@ -185,7 +194,6 @@ db.destroy();
 ```
 
 ### 2. 存储 K-V 类型数据
-开始使用
 ```java
 //创建QuickIO.KV对象，并设置存储目录
 QuickIO.KV kv = new QuickIO.KV("sample_kv");
@@ -289,6 +297,14 @@ long id = QuickIO.id();
 
 //通过Snowflake ID获取时间戳
 long timestamp = QuickIO.toTimestamp(id);
+
+//Java bean转JSON
+String json = QuickIO.toJson(new User(u -> {
+    u.name = "LiMing";
+    u.age = 18;
+    u.gender = "male";
+    u.email = "liming@gmail.com";
+}));
 ```
 
 
@@ -300,7 +316,6 @@ long timestamp = QuickIO.toTimestamp(id);
 QuickIO使用到的开源项目
 + [LevelDB](https://github.com/dain/leveldb)
 + [Hessian](http://hessian.caucho.com/)
-+ [JSON In Java](https://www.json.org/json-en.html)
 
 
 # License
