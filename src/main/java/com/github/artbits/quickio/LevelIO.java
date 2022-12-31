@@ -31,14 +31,14 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-class IO {
+class LevelIO implements AutoCloseable {
 
     private final File file;
     private final DBFactory factory;
-    private final DB db;
+    private DB db;
 
 
-    IO(String path) {
+    LevelIO(String path) {
         try {
             Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The path cannot be null or empty"));
             file = new File(path);
@@ -54,10 +54,12 @@ class IO {
     }
 
 
+    @Override
     public void close() {
         try {
             if (db != null) {
                 db.close();
+                db = null;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

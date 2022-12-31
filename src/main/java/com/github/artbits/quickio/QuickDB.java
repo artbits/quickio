@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-class QuickDB extends IO {
+class QuickDB extends LevelIO {
 
     QuickDB(String path) {
         super(path);
@@ -203,6 +203,36 @@ class QuickDB extends IO {
         byte[] key = asBytes(id);
         byte[] value = get(key);
         return (value != null) ? asObject(value, tClass) : null;
+    }
+
+
+    public <T extends QuickIO.Object> List<T> findWithID(Class<T> tClass, Predicate<Long> predicate, Consumer<FindOptions> consumer) {
+        FindOptions<T> options = (consumer != null) ? new FindOptions<>(tClass) : null;
+        Optional.ofNullable(consumer).ifPresent(c -> c.accept(options));
+        List<T> list = new ArrayList<>();
+        iteration((key, value) -> {
+            long id = Tools.asLong(key);
+            if (predicate.test(id)) {
+                T t = asObject(value, tClass);
+                Optional.ofNullable(t).ifPresent(list::add);
+            }
+        });
+        return (consumer != null) ? options.get(list) : list;
+    }
+
+
+    public <T extends QuickIO.Object> List<T> findWithID(Class<T> tClass, Predicate<Long> predicate) {
+        return findWithID(tClass, predicate, null);
+    }
+
+
+    public <T extends QuickIO.Object> List<T> findWithTime(Class<T> tClass, Predicate<Long> predicate, Consumer<FindOptions> consumer) {
+        return findWithID(tClass, id -> predicate.test(QuickIO.toTimestamp(id)), consumer);
+    }
+
+
+    public <T extends QuickIO.Object> List<T> findWithTime(Class<T> tClass, Predicate<Long> predicate) {
+        return findWithTime(tClass, predicate, null);
     }
 
 
