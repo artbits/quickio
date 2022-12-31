@@ -341,7 +341,7 @@ long id = QuickIO.id();
 //Get timestamp through Snowflake ID.
 long timestamp = QuickIO.toTimestamp(id);
 
-//Java bean to JSON。
+//Java bean to JSON.
 String json = QuickIO.toJson(new User(u -> {
     u.name = "LiMing";
     u.age = 18;
