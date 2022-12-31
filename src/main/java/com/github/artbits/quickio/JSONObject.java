@@ -22,18 +22,18 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public final class JSONObject {
+final class JSONObject {
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
 
-    public <T> JSONObject(T t) {
+    <T> JSONObject(T t) {
         initMap();
-        ergodicField(t, this::putMap);
+        ergodicFields(t, this::putMap);
     }
 
 
-    private <T> void ergodicField(T t, BiConsumer<String, Object> consumer) {
+    private <T> void ergodicFields(T t, BiConsumer<String, Object> consumer) {
         try {
             Class<?> clazz = t.getClass();
             while (clazz != null) {
@@ -158,7 +158,7 @@ public final class JSONObject {
     private static String collectionToJSONString(Collection<?> collection) {
         StringBuilder builder = new StringBuilder();
         builder.append("[");
-        for (Object o : collection) {
+        collection.forEach(o -> {
             ifBasicType(o, () -> {
                 builder.append(o).append(",");
             }, () -> {
@@ -168,7 +168,7 @@ public final class JSONObject {
                     builder.append(new JSONObject(o)).append(",");
                 });
             });
-        }
+        });
         return builder.deleteCharAt(builder.length() - 1).append("]").toString();
     }
 
@@ -176,22 +176,18 @@ public final class JSONObject {
     private static String mapToJSONString(Map<?, ?> map) {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (entry.getKey() == null || entry.getValue() == null) {
-                continue;
-            }
-            builder.append("\"").append(entry.getKey()).append("\":");
-            Object value = entry.getValue();
-            ifBasicType(value, () -> {
-                builder.append(value).append(",");
+        map.forEach((k, v) -> Optional.ofNullable((k != null && v != null) ? k : null).ifPresent(o -> {
+            builder.append("\"").append(k).append("\":");
+            ifBasicType(v, () -> {
+                builder.append(v).append(",");
             }, () -> {
-                ifTextType(value, () -> {
-                    builder.append("\"").append(value).append("\"").append(",");
+                ifTextType(v, () -> {
+                    builder.append("\"").append(v).append("\"").append(",");
                 }, () -> {
-                    builder.append(new JSONObject(value)).append(",");
+                    builder.append(new JSONObject(v)).append(",");
                 });
             });
-        }
+        }));
         return builder.deleteCharAt(builder.length() - 1).append("}").toString();
     }
 
@@ -200,26 +196,18 @@ public final class JSONObject {
         if (o instanceof Byte || o instanceof Short || o instanceof Integer
                 || o instanceof Long || o instanceof Boolean || o instanceof Float
                 || o instanceof Double || o instanceof BigInteger || o instanceof BigDecimal) {
-            if (runnable1 != null) {
-                runnable1.run();
-            }
+            Optional.ofNullable(runnable1).ifPresent(Runnable::run);
         } else {
-            if (runnable2 != null) {
-                runnable2.run();
-            }
+            Optional.ofNullable(runnable2).ifPresent(Runnable::run);
         }
     }
 
 
     private static void ifTextType(Object o, Runnable runnable1, Runnable runnable2) {
         if (o instanceof String || o instanceof Character) {
-            if (runnable1 != null) {
-                runnable1.run();
-            }
+            Optional.ofNullable(runnable1).ifPresent(Runnable::run);
         } else {
-            if (runnable2 != null) {
-                runnable2.run();
-            }
+            Optional.ofNullable(runnable2).ifPresent(Runnable::run);
         }
     }
 

@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 final class Tools {
 
@@ -107,6 +108,28 @@ final class Tools {
     static int getDigit(long i){
         i = i > 0 ? i : -i;
         return i == 0 ? 1 : (int) Math.log10(i) + 1;
+    }
+
+
+    static void print(Object o) {
+        System.out.print(o);
+    }
+
+
+    static void println(Object o) {
+        System.out.println(o);
+    }
+
+
+    static void println(String s, Object... args) {
+        System.out.printf(s + "%n", args);
+    }
+
+
+    static <T> void printJson(T t) {
+        QuickIO.println(Optional.ofNullable(t)
+                        .map(s -> QuickIO.toJson(t))
+                        .orElse("The converted JSON object cannot be null"));
     }
 
 }

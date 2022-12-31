@@ -40,6 +40,10 @@ public final class QuickIO {
         public final String toJson() {
             return QuickIO.toJson(this);
         }
+
+        public final void printJson() {
+            Tools.printJson(this);
+        }
     }
 
 
@@ -76,6 +80,31 @@ public final class QuickIO {
 
     public static <T> String toJson(T t) {
         return new JSONObject(t).toString();
+    }
+
+
+    public static void print(java.lang.Object o) {
+        Tools.print(o);
+    }
+
+
+    public static void print(String s, java.lang.Object... args) {
+        Tools.print(String.format(s, args));
+    }
+
+
+    public static void println(java.lang.Object o) {
+        Tools.println(o);
+    }
+
+
+    public static void println(String s, java.lang.Object... args) {
+        Tools.println(s, args);
+    }
+
+
+    public static <T> void printJson(T t) {
+        Tools.printJson(t);
     }
 
 }

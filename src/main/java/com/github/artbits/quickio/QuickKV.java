@@ -19,7 +19,7 @@ package com.github.artbits.quickio;
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
-class QuickKV extends IO {
+class QuickKV extends LevelIO {
 
     QuickKV(String path) {
         super(path);
