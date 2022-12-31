@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.9'
+    implementation 'com.github.artbits:quickio:1.2.0'
 }
 ```
 
@@ -40,7 +40,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.9</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -81,11 +81,11 @@ User user = new User(u -> {
 db.save(user);
 
 //若保存成功，则ID值不为 0
-System.out.println(user.id());
+QuickIO.println(user.id());
 //若保存成功，则可获取到保存时的时间戳
-System.out.println(user.timestamp());
-//以Json数据格式打印Java bean
-System.out.println(user.toJson());
+QuickIO.println(user.timestamp());
+//Java bean转JSON
+QuickIO.println(user.toJson());
 
 //通过ID更新已存储的数据
 user.age = 20;
@@ -94,7 +94,8 @@ db.save(user);
 //批量保存数据
 List<User> users = Arrays.asList(user1, user2, user3);
 db.save(users);
-users.forEach(u -> System.out.println(u.id()));
+//Java bean以JSON格式打印到操控台
+users.forEach(QuickIO.Object::printJson);
 
 
 
@@ -114,7 +115,7 @@ db.update(user, u -> {
 //删除：
 //通过ID删除；若删除成功，则返回值为true
 boolean res = db.delete(user.id());
-System.out.println(res);
+QuickIO.println(res);
 
 //通过ID批量删除
 db.delete(id1, id2, id3, id4);
@@ -175,6 +176,28 @@ List<User> users5 = db.find(User.class, null, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
+//按ID条件查找，findWithID方法比find方法更合适
+//不推荐：db.find(User.class, u -> u.id() > 1058754025064759296L);
+List<User> users6 = db.findWithID(User.class, id -> id > 1058754025064759296L);
+
+//按ID条件查找，并设置FindOptions参数
+List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
+    options.sort("age", 1).skip(3).limit(10);
+});
+
+//按时间戳条件查找，findWithID方法比find方法更合适
+//不推荐：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
+List<User> users8 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
+
+//按时间戳条件查找，并设置FindOptions参数
+List<User> users9 = db.findWithTime(User.class, timestamp -> {
+    boolean b1 = QuickIO.toTimestamp(1058754025064759296L) < timestamp;
+    boolean b2 = timestamp < System.currentTimeMillis();
+    return b1 && b2;
+}, options -> {
+    options.sort("age", 1).skip(3).limit(10);
+});
+
 
 
 //计数：
@@ -186,7 +209,14 @@ int res2 = db.count(User.class, u -> u.age >= 18);
 
 
 
-//手动关闭数据库
+//Try-with-catch自动关闭
+try (QuickIO.DB db = new QuickIO.DB("sample_db")){
+    //do something
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
+//手动关闭数据库，你可以将其留给JVM，而无需手动关闭它
 db.close();
 
 //销毁数据库
@@ -246,12 +276,19 @@ kv.write("Li Ming", new User(u -> {
 //读取Java bean数据
 User user = kv.read("Li Ming", User.class);
 if (user != null) {
-    System.out.println(user.name + " " + user.age);
+    QuickIO.println(user.name + " " + user.age);
 }
 
 
 
-//手动关闭数据库
+//Try-with-catch自动关闭
+try (QuickIO.KV kv = new QuickIO.KV("sample_kv")){
+    //do something
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
+//手动关闭数据库，你可以将其留给JVM，而无需手动关闭它
 kv.close();
 
 //销毁数据库
@@ -270,7 +307,7 @@ can.put("test.png", new File("..."));
 //从罐头中获取指定的文件
 File file = can.get("test.png");
 if (file != null) {
-    System.out.println(file.getPath());
+    QuickIO.println(file.getPath());
 }
 
 //从罐头中移除指定的文件
@@ -281,7 +318,7 @@ List<File> files = can.list();
 
 //循环读取罐头中的文件；若返回true，则继续循环；若返回false，则中断循环
 can.foreach(file -> {
-    System.out.println(file.getName());
+    QuickIO.println(file.getName());
     return true;
 });
 
@@ -305,6 +342,59 @@ String json = QuickIO.toJson(new User(u -> {
     u.gender = "male";
     u.email = "liming@gmail.com";
 }));
+
+//Java bean以JSON格式直接打印到操控台
+QuickIO.printJson(new User(u -> {
+    u.name = "LiMing";
+    u.age = 18;
+    u.gender = "male";
+    u.email = "liming@gmail.com";
+}));
+
+//打印数据到操控台的方法
+QuickIO.print("Hello world\n");
+QuickIO.print("%d %f %c %s\n", 1, 3.14f, 'c', "Hello world");
+QuickIO.println("Hello world");
+QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
+```
+
+
+### 5. 小提示
+```java
+//提示一：
+//共享DB和独立DB的操作，KV和Can操作类似
+//创建共享和独立DB
+QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
+QuickIO.DB userDB = new QuickIO.DB("user_db");
+QuickIO.DB bookDB = new QuickIO.DB("book_db");
+
+//共享DB操作
+sharedDB.save(new User("Lake", "lake@foxmail.com"));
+sharedDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
+
+//独立DB操作
+userDB.save(new User("Lake", "lake@foxmail.com"));
+bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
+
+
+
+//提示二:
+//查找数据时的性能优化
+//假设列表包含大量元素
+List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
+
+//不推荐：
+List<User> users1 = new ArrayList<>();
+for (String name : nameList) {
+    User user = db.findOne(User.class, u -> name.equals(u.name));
+    if (user != null) {
+        users1.add(user);
+    }
+}
+
+//推荐：
+Map<String, Boolean> map = nameList.stream().collect(Collectors.toMap(s -> s, b -> true));
+List<User> users2 = db.find(User.class, u -> map.getOrDefault(u.name, false));
 ```
 
 
