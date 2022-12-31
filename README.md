@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.1.9'
+    implementation 'com.github.artbits:quickio:1.2.0'
 }
 ```
 
@@ -40,7 +40,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.1.9</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -81,11 +81,11 @@ User user = new User(u -> {
 db.save(user);
 
 //Saved successfully. The value of ID is not zero.
-System.out.println(user.id());
+QuickIO.println(user.id());
 //Saved successfully. Get the timestamp when saving.
-System.out.println(user.timestamp());
-//Java bean to json.
-System.out.println(user.toJson());
+QuickIO.println(user.timestamp());
+//Java bean to JSON.
+QuickIO.println(user.toJson());
 
 //Update the stored data according to the ID.
 user.age = 20;
@@ -94,7 +94,8 @@ db.save(user);
 //Batch save data.
 List<User> users = Arrays.asList(user1, user2, user3);
 db.save(users);
-users.forEach(u -> System.out.println(u.id()));
+//Java beans are printed to the console in JSON format.
+users.forEach(QuickIO.Object::printJson);
 
 
 
@@ -114,7 +115,7 @@ db.update(user, u -> {
 //Delete:
 //Delete by ID. Deletion succeeded, the result is true.
 boolean res = db.delete(user.id());
-System.out.println(res);
+QuickIO.println(res);
 
 //Batch delete by ID.
 db.delete(id1, id2, id3, id4);
@@ -175,6 +176,28 @@ List<User> users5 = db.find(User.class, null, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
+//Find by ID condition. The findWithID method is more suitable than the find method.
+//Not recommended：db.find(User.class, u -> u.id() > 1058754025064759296L);
+List<User> users6 = db.findWithID(User.class, id -> id > 1058754025064759296L);
+
+//Find by ID condition, and set the FindOptions parameter.
+List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
+    options.sort("age", 1).skip(3).limit(10);
+});
+
+//Find by timestamp condition. The findWithTime method is more suitable than the find method.
+//Not recommended：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
+List<User> users8 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
+
+//Find by timestamp condition, and set the FindOptions parameter.
+List<User> users9 = db.findWithTime(User.class, timestamp -> {
+    boolean b1 = QuickIO.toTimestamp(1058754025064759296L) < timestamp;
+    boolean b2 = timestamp < System.currentTimeMillis();
+    return b1 && b2;
+}, options -> {
+    options.sort("age", -1).limit(10);
+});
+
 
 
 //Conut:
@@ -186,7 +209,15 @@ int res2 = db.count(User.class, u -> u.age >= 18);
 
 
 
+//Try-with-catch automatically closes.
+try (QuickIO.DB db = new QuickIO.DB("sample_db")){
+    //do something
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
 //Manually close the database file.
+//You can leave it to the JVM without closing it manually.
 db.close();
 
 //Delete database file.
@@ -246,12 +277,20 @@ kv.write("Li Ming", new User(u -> {
 //Read Java beans data.
 User user = kv.read("Li Ming", User.class);
 if (user != null) {
-    System.out.println(user.name + " " + user.age);
+    QuickIO.println(user.name + " " + user.age);
 }
 
 
 
+//Try-with-catch automatically closes.
+try (QuickIO.KV kv = new QuickIO.KV("sample_kv")){
+    //do something
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
 //Manually close the database file.
+//You can leave it to the JVM without closing it manually.
 kv.close();
 
 //Delete database file.
@@ -270,7 +309,7 @@ can.put("test.png", new File("..."));
 //Get the specified file from the can.
 File file = can.get("test.png");
 if (file != null) {
-    System.out.println(file.getPath());
+    QuickIO.println(file.getPath());
 }
 
 //Remove the specified file from the can.
@@ -283,7 +322,7 @@ List<File> files = can.list();
 //return true to continue the loop, 
 //and return false to break the loop.
 can.foreach(file -> {
-    System.out.println(file.getName());
+    QuickIO.println(file.getName());
     return true;
 });
 
@@ -302,13 +341,65 @@ long id = QuickIO.id();
 //Get timestamp through Snowflake ID.
 long timestamp = QuickIO.toTimestamp(id);
 
-//Java bean to JSON
+//Java bean to JSON。
 String json = QuickIO.toJson(new User(u -> {
     u.name = "LiMing";
     u.age = 18;
     u.gender = "male";
     u.email = "liming@gmail.com";
 }));
+
+//Java beans are printed to the console in JSON format.
+QuickIO.printJson(new User(u -> {
+    u.name = "LiMing";
+    u.age = 18;
+    u.gender = "male";
+    u.email = "liming@gmail.com";
+}));
+
+//Print data to console.
+QuickIO.print("Hello world\n");
+QuickIO.print("%d %f %c %s\n", 1, 3.14f, 'c', "Hello world");
+QuickIO.println("Hello world");
+QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
+```
+
+### 5. Tips.
+```java
+//Trip 1:
+//Shared DB and independent DB operations. KV and Can operate similarly.
+//Create shared and independent DB.
+QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
+QuickIO.DB userDB = new QuickIO.DB("user_db");
+QuickIO.DB bookDB = new QuickIO.DB("book_db");
+
+//Shared DB Operation.
+sharedDB.save(new User("Lake", "lake@foxmail.com"));
+sharedDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
+
+//Independent DB operation.
+userDB.save(new User("Lake", "lake@foxmail.com"));
+bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
+
+
+
+//Trip 2:
+//Performance optimization when finding data.
+//Assume that the list has a large number of elements.
+List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
+
+//Not recommended:
+List<User> users1 = new ArrayList<>();
+for (String name : nameList) {
+    User user = db.findOne(User.class, u -> name.equals(u.name));
+    if (user != null) {
+        users1.add(user);
+    }
+}
+
+//Recommend:
+Map<String, Boolean> map = nameList.stream().collect(Collectors.toMap(s -> s, b -> true));
+List<User> users2 = db.find(User.class, u -> map.getOrDefault(u.name, false));
 ```
 
 
