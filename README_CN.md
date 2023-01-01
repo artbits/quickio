@@ -185,7 +185,7 @@ List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L, o
     options.sort("age", 1).skip(3).limit(10);
 });
 
-//按时间戳条件查找，findWithID方法比find方法更合适
+//按时间戳条件查找，findWithTime方法比find方法更合适
 //不推荐：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
 List<User> users8 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
 
@@ -210,7 +210,7 @@ int res2 = db.count(User.class, u -> u.age >= 18);
 
 
 //Try-with-catch自动关闭
-try (QuickIO.DB db = new QuickIO.DB("sample_db")){
+try (QuickIO.DB db = new QuickIO.DB("sample_db")) {
     //do something
 } catch (Exception e) {
     e.printStackTrace();
@@ -282,7 +282,7 @@ if (user != null) {
 
 
 //Try-with-catch自动关闭
-try (QuickIO.KV kv = new QuickIO.KV("sample_kv")){
+try (QuickIO.KV kv = new QuickIO.KV("sample_kv")) {
     //do something
 } catch (Exception e) {
     e.printStackTrace();
