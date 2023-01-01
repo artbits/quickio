@@ -195,7 +195,7 @@ List<User> users9 = db.findWithTime(User.class, timestamp -> {
     boolean b2 = timestamp < System.currentTimeMillis();
     return b1 && b2;
 }, options -> {
-    options.sort("age", -1).limit(10);
+    options.sort("age", -1).skip(3).limit(10);
 });
 
 
@@ -210,7 +210,7 @@ int res2 = db.count(User.class, u -> u.age >= 18);
 
 
 //Try-with-catch automatically closes.
-try (QuickIO.DB db = new QuickIO.DB("sample_db")){
+try (QuickIO.DB db = new QuickIO.DB("sample_db")) {
     //do something
 } catch (Exception e) {
     e.printStackTrace();
@@ -283,7 +283,7 @@ if (user != null) {
 
 
 //Try-with-catch automatically closes.
-try (QuickIO.KV kv = new QuickIO.KV("sample_kv")){
+try (QuickIO.KV kv = new QuickIO.KV("sample_kv")) {
     //do something
 } catch (Exception e) {
     e.printStackTrace();
@@ -366,7 +366,7 @@ QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
 
 ### 5. Tips.
 ```java
-//Trip 1:
+//Tips 1:
 //Shared DB and independent DB operations. KV and Can operate similarly.
 //Create shared and independent DB.
 QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
@@ -383,7 +383,7 @@ bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
 
 
 
-//Trip 2:
+//Tips 2:
 //Performance optimization when finding data.
 //Assume that the list has a large number of elements.
 List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
