@@ -18,6 +18,9 @@ QuickIO is a versatile embedded database, and the bottom layer is designed based
    + Only single process operation is supported, not multiple processes.
 
 
+🚀 For QuickIO performance data, click [here](performance_data.md).
+
+
 ## Download
 Gradle:
 ```groovy
@@ -26,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.0'
+    implementation 'com.github.artbits:quickio:1.2.1'
 }
 ```
 
@@ -40,7 +43,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
@@ -120,8 +123,8 @@ QuickIO.println(res);
 //Batch delete by ID.
 db.delete(id1, id2, id3, id4);
 
-//Batch delete by list(element must have an id).
-db.delete(users);
+//Batch delete by ID list.
+db.delete(Arrays.asList(id1, id2, id3, id4));
 
 //Delete all data of User type.
 db.delete(User.class);
@@ -156,14 +159,17 @@ List<User> users1 = db.find(User.class);
 //Batch find Java beans of User type by ID.
 List<User> users2 = db.find(User.class, id1, id2, id3, id4);
 
+//Batch find Java beans of User type by ID list.
+List<User> users3 = db.find(User.class, Arrays.asList(id1, id2, id3, id4));
+
 //Batch find Java beans of User type by conditions.
-List<User> users3 = db.find(User.class, u -> u.age >= 18);
+List<User> users4 = db.find(User.class, u -> u.age >= 18);
 
 //Batch find Java beans of User type by conditions.
 //Sort, 1 is asc, and -1 is desc.
 //The number of skipped elements can be set.
 //The number of limit elements can be set.
-List<User> users4 = db.find(User.class, u -> {
+List<User> users5 = db.find(User.class, u -> {
     boolean b1 = u.gender.equals("male");
     boolean b2 = u.email.contains("@gmail.com");
     return b1 && b2;
@@ -172,25 +178,25 @@ List<User> users4 = db.find(User.class, u -> {
 });
 
 //The find condition can be null. Only the FindOptions parameter is set.
-List<User> users5 = db.find(User.class, null, options -> {
+List<User> users6 = db.find(User.class, null, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
 //Find by ID condition. The findWithID method is more suitable than the find method.
 //Not recommended：db.find(User.class, u -> u.id() > 1058754025064759296L);
-List<User> users6 = db.findWithID(User.class, id -> id > 1058754025064759296L);
+List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L);
 
 //Find by ID condition, and set the FindOptions parameter.
-List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
+List<User> users8 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
 //Find by timestamp condition. The findWithTime method is more suitable than the find method.
 //Not recommended：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
-List<User> users8 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
+List<User> users9 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
 
 //Find by timestamp condition, and set the FindOptions parameter.
-List<User> users9 = db.findWithTime(User.class, timestamp -> {
+List<User> users10 = db.findWithTime(User.class, timestamp -> {
     boolean b1 = QuickIO.toTimestamp(1058754025064759296L) < timestamp;
     boolean b2 = timestamp < System.currentTimeMillis();
     return b1 && b2;
@@ -206,6 +212,23 @@ int res1 = db.count(User.class);
 
 //Count the number of User type data by condition.
 int res2 = db.count(User.class, u -> u.age >= 18);
+
+
+
+//Opening of disposable:
+//Equivalent to try-with-catch automatically closes.
+QuickIO.DB.open("sample_db", db -> {
+    //Operation db.
+}, e -> {
+    //Exception handling.
+});
+
+//Open -> return data -> close.
+User user = QuickIO.DB.openGet("sample_db", db -> {
+    return db.findFirst(User.class);
+}, e -> {
+    //Exception handling.
+});
 
 
 
@@ -274,11 +297,28 @@ kv.write("Li Ming", new User(u -> {
     u.age = 18;
 }));
 
-//Read Java beans data.
+//Read Java bean data.
 User user = kv.read("Li Ming", User.class);
 if (user != null) {
     QuickIO.println(user.name + " " + user.age);
 }
+
+
+
+//Opening of disposable:
+//Equivalent to try-with-catch automatically closes.
+QuickIO.KV.open("sample_kv", kv -> {
+    //Operation kv.
+}, e -> {
+    //Exception handling.
+});
+
+//Open -> return data -> close.
+boolean b = QuickIO.KV.openGet("sample_kv", kv -> {
+    return kv.read("Bool", false);
+}, e -> {
+    //Exception handling.
+});
 
 
 

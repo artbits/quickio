@@ -8,14 +8,17 @@
 QuickIO是一个多功能嵌入式数据库，底层基于LevelDB引擎和Java NIO设计。支持存储Java bean、Key-Value格式和文件类型的数据。零配置，使用Java代码操作，快速高效。
 
 + 优点
-   + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装和配置
-   + 像 ``MongoDB`` 或 [Diskv](https://github.com/peterbourgon/diskv) 一样的NoSQL数据库，使用简单
-   + 支持存储Java bean、Key-Value格式和文件类型的数据
-   + 简易的API，使用Java Lambda表达式优雅操作
-   + 读写快速，满足中小型数据量的使用场景
+   + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装和配置。
+   + 像 ``MongoDB`` 或 [Diskv](https://github.com/peterbourgon/diskv) 一样的NoSQL数据库，使用简单。
+   + 支持存储Java bean、Key-Value格式和文件类型的数据。
+   + 简易的API，使用Java Lambda表达式优雅操作。
+   + 读写快速，满足中小型数据量的使用场景。
 + 缺点
-   + 非关系型数据库，不支持SQL语句、索引和事务
-   + 只支持单进程运行，不支持多进程
+   + 非关系型数据库，不支持SQL语句、索引和事务。
+   + 只支持单进程运行，不支持多进程。
+
+
+🚀 了解 QuickIO 性能数据，请点击 [这里](performance_data.md)。
 
 
 ## 下载
@@ -26,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.0'
+    implementation 'com.github.artbits:quickio:1.2.1'
 }
 ```
 
@@ -40,7 +43,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
@@ -120,8 +123,8 @@ QuickIO.println(res);
 //通过ID批量删除
 db.delete(id1, id2, id3, id4);
 
-//通过list批量删除（元素的ID值必须有效）
-db.delete(users);
+//通过ID list批量删除
+db.delete(Arrays.asList(id1, id2, id3, id4));
 
 //删除User类型的全部数据
 db.delete(User.class);
@@ -156,14 +159,17 @@ List<User> users1 = db.find(User.class);
 //按ID批量查找User类型的Java bean
 List<User> users2 = db.find(User.class, id1, id2, id3, id4);
 
+//按ID列表批量查找User类型的Java bean
+List<User> users3 = db.find(User.class, Arrays.asList(id1, id2, id3, id4));
+
 //按条件批量查找User类型的Java bean
-List<User> users3 = db.find(User.class, u -> u.age >= 18);
+List<User> users4 = db.find(User.class, u -> u.age >= 18);
 
 //按条件批量查找User类型的Java bean
 //排序，1是升序，-1是降序
 //可以设置跳过元素的数量
 //可以设置限制元素的数量
-List<User> users4 = db.find(User.class, u -> {
+List<User> users5 = db.find(User.class, u -> {
     boolean b1 = u.gender.equals("male");
     boolean b2 = u.email.contains("@gmail.com");
     return b1 && b2;
@@ -172,25 +178,25 @@ List<User> users4 = db.find(User.class, u -> {
 });
 
 //查找条件可以为null，仅设置FindOptions参数
-List<User> users5 = db.find(User.class, null, options -> {
+List<User> users6 = db.find(User.class, null, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
 //按ID条件查找，findWithID方法比find方法更合适
 //不推荐：db.find(User.class, u -> u.id() > 1058754025064759296L);
-List<User> users6 = db.findWithID(User.class, id -> id > 1058754025064759296L);
+List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L);
 
 //按ID条件查找，并设置FindOptions参数
-List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
+List<User> users8 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
     options.sort("age", 1).skip(3).limit(10);
 });
 
 //按时间戳条件查找，findWithTime方法比find方法更合适
 //不推荐：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
-List<User> users8 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
+List<User> users9 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
 
 //按时间戳条件查找，并设置FindOptions参数
-List<User> users9 = db.findWithTime(User.class, timestamp -> {
+List<User> users10 = db.findWithTime(User.class, timestamp -> {
     boolean b1 = QuickIO.toTimestamp(1058754025064759296L) < timestamp;
     boolean b2 = timestamp < System.currentTimeMillis();
     return b1 && b2;
@@ -206,6 +212,23 @@ int res1 = db.count(User.class);
 
 //按条件统计User类型数据的数量
 int res2 = db.count(User.class, u -> u.age >= 18);
+
+
+
+//一次性打开：
+//等价于Try-with-catch自动关闭
+QuickIO.DB.open("sample_db", db -> {
+    //Operation db.
+}, e -> {
+    //Exception handling.
+});
+
+//打开 -> 返回数据 -> 关闭
+User user = QuickIO.DB.openGet("sample_db", db -> {
+    return db.findFirst(User.class);
+}, e -> {
+    //Exception handling.
+});
 
 
 
@@ -278,6 +301,23 @@ User user = kv.read("Li Ming", User.class);
 if (user != null) {
     QuickIO.println(user.name + " " + user.age);
 }
+
+
+
+//一次性打开：
+//等价于try-with-catch自动关闭
+QuickIO.KV.open("sample_kv", kv -> {
+    //Operation kv.
+}, e -> {
+    //Exception handling.
+});
+
+//打开 -> 返回数据 -> 关闭
+boolean b = QuickIO.KV.openGet("sample_kv", kv -> {
+    return kv.read("Bool", false);
+}, e -> {
+    //Exception handling.
+});
 
 
 
