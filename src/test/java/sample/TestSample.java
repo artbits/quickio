@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 final class TestSample {
 
@@ -230,7 +231,7 @@ final class TestSample {
             d.studentIds = new ArrayList<>();
         }));
         db.save(departments);
-        db.delete(departments);
+        db.delete(departments.stream().map(QuickIO.Object::id).collect(Collectors.toList()));
         db.find(Department.class).forEach(d -> System.out.println(d.toJson()));
     }
 
