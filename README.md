@@ -201,7 +201,7 @@ List<User> users10 = db.findWithTime(User.class, timestamp -> {
     boolean b2 = timestamp < System.currentTimeMillis();
     return b1 && b2;
 }, options -> {
-    options.sort("age", -1).skip(3).limit(10);
+    options.sort("age", 1).skip(3).limit(10);
 });
 
 
