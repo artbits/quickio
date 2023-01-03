@@ -16,6 +16,10 @@
 
 package com.github.artbits.quickio;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 import static com.github.artbits.quickio.Tools.asBytes;
 import static com.github.artbits.quickio.Tools.asObject;
 
@@ -61,6 +65,39 @@ class QuickKV extends LevelIO {
     public boolean containsKey(String key) {
         byte[] bytes = get(asBytes(key));
         return bytes != null;
+    }
+
+
+    public static void open(String name, Consumer<QuickIO.KV> consumer1, Consumer<Exception> consumer2) {
+        try (QuickIO.KV kv = new QuickIO.KV(name)) {
+            consumer1.accept(kv);
+        } catch (Exception e) {
+            Optional.ofNullable(consumer2)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+        }
+    }
+
+
+    public static void open(String name, Consumer<QuickIO.KV> consumer) {
+        open(name, consumer, null);
+    }
+
+
+    public static <T> T openGet(String name, Function<QuickIO.KV, T> function, Consumer<Exception> consumer) {
+        try (QuickIO.KV kv = new QuickIO.KV(name)) {
+            return function.apply(kv);
+        } catch (Exception e) {
+            Optional.ofNullable(consumer)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+            return null;
+        }
+    }
+
+
+    public static <T> T openGet(String name, Function<QuickIO.KV, T> function) {
+        return openGet(name, function, null);
     }
 
 }

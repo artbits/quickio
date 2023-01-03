@@ -48,22 +48,22 @@ public final class QuickIO {
 
 
     public static class DB extends QuickDB {
-        public DB(String path) {
-            super((path == null || path.isEmpty()) ? null : DB_PATH + path);
+        public DB(String name) {
+            super((name == null || name.isEmpty()) ? null : DB_PATH + name);
         }
     }
 
 
     public static class KV extends QuickKV {
-        public KV(String path) {
-            super((path == null || path.isEmpty()) ? null : KV_PATH + path);
+        public KV(String name) {
+            super((name == null || name.isEmpty()) ? null : KV_PATH + name);
         }
     }
 
 
     public static class Can extends QuickCan {
-        public Can(String path) {
-            super((path == null || path.isEmpty()) ? null : CAN_PATH + path);
+        public Can(String name) {
+            super((name == null || name.isEmpty()) ? null : CAN_PATH + name);
         }
     }
 
@@ -80,6 +80,11 @@ public final class QuickIO {
 
     public static <T> String toJson(T t) {
         return new JSONObject(t).toString();
+    }
+
+
+    public static <T> void printJson(T t) {
+        Tools.printJson(t);
     }
 
 
@@ -100,11 +105,6 @@ public final class QuickIO {
 
     public static void println(String s, java.lang.Object... args) {
         Tools.println(s, args);
-    }
-
-
-    public static <T> void printJson(T t) {
-        Tools.printJson(t);
     }
 
 }

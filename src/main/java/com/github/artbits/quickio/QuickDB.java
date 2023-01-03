@@ -17,10 +17,14 @@
 package com.github.artbits.quickio;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.github.artbits.quickio.Tools.asBytes;
@@ -87,8 +91,8 @@ class QuickDB extends LevelIO {
     }
 
 
-    public <T extends QuickIO.Object> void delete(List<T> list) {
-        writeBatch(batch -> list.forEach(t -> batch.delete(asBytes(t.id))));
+    public void delete(List<Long> ids) {
+        writeBatch(batch -> ids.forEach(id -> batch.delete(asBytes((long) id))));
     }
 
 
@@ -187,13 +191,25 @@ class QuickDB extends LevelIO {
     }
 
 
+    public <T extends QuickIO.Object> List<T> find(Class<T> tClass, List<Long> ids) {
+        List<T> list = new ArrayList<>();
+        ids.forEach(id -> {
+            byte[] key = asBytes((long) id);
+            byte[] value = get(key);
+            T t = (value != null) ? asObject(value, tClass) : null;
+            Optional.ofNullable(t).ifPresent(list::add);
+        });
+        return list;
+    }
+
+
     public <T extends QuickIO.Object> List<T> find(Class<T> tClass, long... ids) {
         List<T> list = new ArrayList<>();
         for (long id : ids) {
             byte[] key = asBytes(id);
             byte[] value = get(key);
             T t = (value != null) ? asObject(value, tClass) : null;
-            list.add(t);
+            Optional.ofNullable(t).ifPresent(list::add);
         }
         return list;
     }
@@ -253,6 +269,39 @@ class QuickDB extends LevelIO {
 
     public <T extends QuickIO.Object> int count(Class<T> tClass) {
         return count(tClass, null);
+    }
+
+
+    public static void open(String name, Consumer<QuickIO.DB> consumer1, Consumer<Exception> consumer2) {
+        try (QuickIO.DB db = new QuickIO.DB(name)) {
+            consumer1.accept(db);
+        } catch (Exception e) {
+            Optional.ofNullable(consumer2)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+        }
+    }
+
+
+    public static void open(String name, Consumer<QuickIO.DB> consumer) {
+        open(name, consumer,null);
+    }
+
+
+    public static <T> T openGet(String name, Function<QuickIO.DB, T> function, Consumer<Exception> consumer) {
+        try (QuickIO.DB db = new QuickIO.DB(name)) {
+            return function.apply(db);
+        } catch (Exception e) {
+            Optional.ofNullable(consumer)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+            return null;
+        }
+    }
+
+
+    public static <T> T openGet(String name, Function<QuickIO.DB, T> function) {
+        return openGet(name, function, null);
     }
 
 }
