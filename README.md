@@ -5,7 +5,7 @@
 English | [中文](README_CN.md)
 
 # QuickIO
-QuickIO is a versatile embedded database, and the bottom layer is designed based on the LevelDB engine and Java NIO. Support store Java bean, Key-Value format and file type data. Zero configuration, Java code operation, fast and efficient.
+QuickIO is a versatile embedded database. The bottom layer is designed based on the LevelDB engine and Java NIO, and Hessian is used to serialize/deserialize data. Support store Java bean, Key-Value format and file type data. Zero configuration, Java code operation, fast and efficient.
 
 + Advantage
    + Embedded databases like ``SQLite`` do not need to be installed and configured.

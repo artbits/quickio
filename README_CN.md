@@ -5,7 +5,7 @@
 [English](README.md) | 中文
 
 # QuickIO
-QuickIO是一个多功能嵌入式数据库，底层基于LevelDB引擎和Java NIO设计。支持存储Java bean、Key-Value格式和文件类型的数据。零配置，使用Java代码操作，快速高效。
+QuickIO 是一个多功能嵌入式数据库。底层基于 LevelDB 引擎和 Java NIO 设计，并使用 Hessian 序列化/反序列化数据。支持存储 Java bean、Key-Value 格式和文件类型的数据。零配置，使用 Java 代码操作，快速高效。
 
 + 优点
    + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装和配置。
