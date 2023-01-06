@@ -1,6 +1,6 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 [![](https://img.shields.io/badge/JDK-%3E%3D%208-orange)](https://jdk.java.net/)
-[![](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![](https://img.shields.io/badge/license-Apache--2.0-blue)](#license)
 
 [English](README.md) | 中文
 
@@ -16,9 +16,9 @@ QuickIO 是一个多功能嵌入式数据库。底层基于 LevelDB 引擎和 Ja
 + 缺点
    + 非关系型数据库，不支持SQL语句、索引和事务。
    + 只支持单进程运行，不支持多进程。
-
-
-🚀 了解 QuickIO 性能数据，请点击 [这里](performance_data.md)。
++ 了解更多
+   + 🚀 了解 QuickIO 性能数据，请点击 [这里](performance_data.md)。
+   + 🎯 了解作者使用 QuickIO 编写的 RSS 服务器程序：[RSS-Svr](https://github.com/artbits/rss-svr)
 
 
 ## 下载
@@ -448,7 +448,7 @@ QuickIO使用到的开源项目
 + [Hessian](http://hessian.caucho.com/)
 
 
-# License
+## License
 ```
 Copyright 2022 Zhang Guanhu
 
