@@ -1,6 +1,6 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 [![](https://img.shields.io/badge/JDK-%3E%3D%208-orange)](https://jdk.java.net/)
-[![](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![](https://img.shields.io/badge/license-Apache--2.0-blue)](#license)
 
 English | [中文](README_CN.md)
 
@@ -16,9 +16,9 @@ QuickIO is a versatile embedded database. The bottom layer is designed based on 
 + Shortcoming
    + Non relational database, does not support SQL statements, index and transaction.
    + Only single process operation is supported, not multiple processes.
-
-
-🚀 For QuickIO performance data, click [here](performance_data.md).
++ Learn more
+   + 🚀 For QuickIO performance data, click [here](performance_data.md).
+   + 🎯 Learn about the RSS server program written by the author using QuickIO: [RSS-Svr](https://github.com/artbits/rss-svr)
 
 
 ## Download
@@ -453,7 +453,7 @@ Open source projects used by QuickIO.
 + [Hessian](http://hessian.caucho.com/)
 
 
-# License
+## License
 ```
 Copyright 2022 Zhang Guanhu
 
