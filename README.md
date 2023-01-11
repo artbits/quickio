@@ -9,12 +9,13 @@ QuickIO is a versatile embedded database. The bottom layer is designed based on 
 
 + Advantage
    + Embedded databases like ``SQLite`` do not need to be installed and configured.
-   + Like ``MongoDB`` or [Diskv](https://github.com/peterbourgon/diskv) same NoSQL database, easy to use.
+   + Like ``MongoDB`` or ``Diskv`` same NoSQL database, easy to use.
+   + The **unique index** designed based on ``Levedb`` is extremely efficient.
    + Support store Java bean, Key-Value format and file type data.
    + Simple API, using Java lambda expressions to operate gracefully.
    + Fast reading and writing, meeting the use scenarios of small and medium data volumes.
 + Shortcoming
-   + Non relational database, does not support SQL statements, index and transaction.
+   + Non relational database, does not support SQL statements and transaction.
    + Only single process operation is supported, not multiple processes.
 + Learn more
    + 🚀 For QuickIO performance data, click [here](performance_data.md).
@@ -29,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.1'
+    implementation 'com.github.artbits:quickio:1.2.2'
 }
 ```
 
@@ -43,7 +44,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
@@ -57,6 +58,7 @@ public class User extends QuickIO.Object {
     public Integer age;
     public String name;
     public String gender;
+    @Index                  //Unique index annotation, optionally added.
     public String email;
 
     public User(Consumer<User> consumer) {
@@ -206,6 +208,19 @@ List<User> users10 = db.findWithTime(User.class, timestamp -> {
 
 
 
+//Index operation:
+//Find Java beans of type User by index.
+User user = db.findWithIndex(User.class, options -> options.index("email", "liming@gmail.com"));
+
+//Use the index to query whether the Java bean exists.
+boolean b = db.exist(User.class, options -> options.index("email", "liming@gmail.com"));
+
+//To delete the @Index annotation, you also need to use the dropIndex method 
+//to remove the data of the corresponding index field.
+db.dropIndex(User.class, "email");
+
+
+
 //Conut:
 //Count the number of User type data.
 int res1 = db.count(User.class);
@@ -238,6 +253,13 @@ try (QuickIO.DB db = new QuickIO.DB("sample_db")) {
 } catch (Exception e) {
     e.printStackTrace();
 }
+
+//Export db data.
+db.export(s -> {
+    QuickIO.println("Path to export file: " + s);
+}, e -> {
+    QuickIO.println("Exception message: " + e.getMessage());
+});
 
 //Manually close the database file.
 //You can leave it to the JVM without closing it manually.
@@ -328,6 +350,13 @@ try (QuickIO.KV kv = new QuickIO.KV("sample_kv")) {
 } catch (Exception e) {
     e.printStackTrace();
 }
+
+//Export kv data.
+kv.export(s -> {
+    QuickIO.println("Path to export file: " + s);
+}, e -> {
+    QuickIO.println("Exception message: " + e.getMessage());
+});
 
 //Manually close the database file.
 //You can leave it to the JVM without closing it manually.
