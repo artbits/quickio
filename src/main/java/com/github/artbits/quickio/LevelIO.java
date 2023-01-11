@@ -36,16 +36,17 @@ class LevelIO implements AutoCloseable {
     private final File file;
     private final DBFactory factory;
     private DB db;
+    private Runnable closeRunnable;
 
 
     LevelIO(String path) {
         try {
-            Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The path cannot be null or empty"));
+            Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The name cannot be null or empty"));
             file = new File(path);
             factory = new Iq80DBFactory();
             Options options = new Options();
             options.createIfMissing(true);
-            options.cacheSize(100 * 1024 * 1024);
+            options.cacheSize(50 * 1024 * 1024);
             db = factory.open(file, options);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
@@ -60,6 +61,7 @@ class LevelIO implements AutoCloseable {
             if (db != null) {
                 db.close();
                 db = null;
+                Optional.ofNullable(closeRunnable).ifPresent(Runnable::run);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -86,13 +88,25 @@ class LevelIO implements AutoCloseable {
     }
 
 
-    boolean put(byte[] key, byte[] value) {
+    void closeListener(Runnable runnable) {
+        this.closeRunnable = runnable;
+    }
+
+
+    void put(byte[] key, byte[] value, Consumer<DBException> consumer) {
         try {
             db.put(key, value);
-            return true;
         } catch (DBException e) {
-            return false;
+            Optional.ofNullable(consumer)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+            throw new RuntimeException(e);
         }
+    }
+
+
+    void put(byte[] key, byte[] value) {
+        put(key, value, null);
     }
 
 
@@ -105,23 +119,30 @@ class LevelIO implements AutoCloseable {
     }
 
 
-    boolean delete(byte[] key) {
+    void delete(byte[] key) {
         try {
             db.delete(key);
-            return true;
         } catch (DBException e) {
-            return false;
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    void writeBatch(Consumer<WriteBatch> consumer1, Consumer<Exception> consumer2) {
+        try (WriteBatch batch = db.createWriteBatch()) {
+            consumer1.accept(batch);
+            db.write(batch);
+        } catch (Exception e) {
+            Optional.ofNullable(consumer2)
+                    .orElseThrow(() -> new RuntimeException(e))
+                    .accept(e);
+            throw new RuntimeException(e);
         }
     }
 
 
     void writeBatch(Consumer<WriteBatch> consumer) {
-        try (WriteBatch batch = db.createWriteBatch()) {
-            consumer.accept(batch);
-            db.write(batch);
-        } catch (DBException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeBatch(consumer, null);
     }
 
 

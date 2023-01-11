@@ -20,13 +20,10 @@ import java.io.Serializable;
 
 public final class QuickIO {
 
-    private final static String DB_PATH = "data/db/";
-    private final static String KV_PATH = "data/kv/";
-    private final static String CAN_PATH = "data/can/";
     private final static Snowflake snowflake = new Snowflake(0, 0);
 
 
-    public static class Object implements Serializable {
+    public static class Object implements Serializable, Cloneable {
         long id;
 
         public final long id() {
@@ -44,26 +41,35 @@ public final class QuickIO {
         public final void printJson() {
             Tools.printJson(this);
         }
+
+        @Override
+        public Object clone() {
+            try {
+                return (Object) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
+        }
     }
 
 
     public static class DB extends QuickDB {
         public DB(String name) {
-            super((name == null || name.isEmpty()) ? null : DB_PATH + name);
+            super(name);
         }
     }
 
 
     public static class KV extends QuickKV {
         public KV(String name) {
-            super((name == null || name.isEmpty()) ? null : KV_PATH + name);
+            super(name);
         }
     }
 
 
     public static class Can extends QuickCan {
         public Can(String name) {
-            super((name == null || name.isEmpty()) ? null : CAN_PATH + name);
+            super(name);
         }
     }
 
