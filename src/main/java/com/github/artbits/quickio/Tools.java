@@ -18,6 +18,7 @@ package com.github.artbits.quickio;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
+import com.github.artbits.quickio.annotations.Index;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,9 +26,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 final class Tools {
 
@@ -39,6 +39,20 @@ final class Tools {
             return o.getClass().getSimpleName().equals(tClass.getSimpleName()) ? tClass.cast(o) : null;
         } catch (IOException e) {
             return null;
+        }
+    }
+
+
+    static Object asObject(byte[] value) {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(value)) {
+            Hessian2Input input = new Hessian2Input(bis);
+            Object o = input.readObject();
+            input.close();
+            String className = o.getClass().getName();
+            Class tClass = Class.forName(className);
+            return o.getClass().getSimpleName().equals(tClass.getSimpleName()) ? tClass.cast(o) : null;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -84,6 +98,14 @@ final class Tools {
             clazz = clazz.getSuperclass();
         }
         return map;
+    }
+
+
+    static List<Field> getAnnotationFields(Object o) {
+        Map<String, Field> map = getFields(o.getClass());
+        return new ArrayList<>(map.values()).stream()
+                .filter(field -> field.isAnnotationPresent(Index.class))
+                .collect(Collectors.toList());
     }
 
 

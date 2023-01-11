@@ -31,6 +31,9 @@ public final class FindOptions<T> {
     private long skipSize;
     private long limitSize;
 
+    String indexName;
+    Object indexValue;
+
 
     FindOptions(Class<T> tClass) {
         this.tClass = tClass;
@@ -55,6 +58,12 @@ public final class FindOptions<T> {
     public FindOptions limit(long size) {
         limitSize = size;
         return this;
+    }
+
+
+    public void index(String fieldName, Object fieldValue) {
+        indexName = Optional.ofNullable(fieldName).orElseThrow(NullPointerException::new);
+        indexValue = Optional.ofNullable(fieldValue).orElseThrow(NullPointerException::new);
     }
 
 

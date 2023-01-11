@@ -19,10 +19,7 @@ package com.github.artbits.quickio;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,9 +31,10 @@ class QuickCan {
     private final String path;
 
 
-    QuickCan(String path) {
+    QuickCan(String name) {
         try {
-            this.path = Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The path cannot be null or empty"));
+            this.path = Optional.ofNullable((name == null || name.isEmpty()) ? null : Constants.CAN_PATH + name)
+                    .orElseThrow(() -> new RuntimeException("The name cannot be null or empty"));
             Files.createDirectories(Paths.get(path));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -66,7 +64,9 @@ class QuickCan {
         try {
             Files.delete(Paths.get(path + "/" + filename));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            if (!(e instanceof NoSuchFileException)) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

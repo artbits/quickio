@@ -27,37 +27,46 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.github.artbits.quickio.Tools.asBytes;
-import static com.github.artbits.quickio.Tools.asObject;
+import static com.github.artbits.quickio.Tools.*;
 
 class QuickDB extends LevelIO {
 
-    QuickDB(String path) {
-        super(path);
+    private final String name;
+    private final IndexEngine indexEngine;
+
+
+    QuickDB(String name) {
+        super((name == null || name.isEmpty()) ? null : Constants.DB_PATH + name);
+        indexEngine = new IndexEngine(Constants.DB_PATH + name + Constants.INDEX_PATH);
+        this.closeListener(() -> Optional.ofNullable(indexEngine).ifPresent(LevelIO::close));
+        this.name = name;
     }
 
 
     public <T extends QuickIO.Object> void save(T t) {
-        if (t.id() == 0 || Tools.getDigit(t.id()) < 18) {
-            t.id = QuickIO.id();
-        }
-        boolean bool = put(asBytes(t.id),  asBytes(t));
-        if (!bool) {
+        t.id = (t.id() == 0 || getDigit(t.id()) < 18) ? QuickIO.id() : t.id();
+        indexEngine.setIndex(t);
+        put(asBytes(t.id), asBytes(t), e -> {
+            indexEngine.removeIndex(t);
             t.id = 0L;
-        }
+        });
     }
 
 
     public <T extends QuickIO.Object> void save(List<T> list) {
-        writeBatch(batch -> list.forEach(t -> {
-            t.id = (t.id() == 0) ? QuickIO.id() : t.id();
-            batch.put(asBytes(t.id), asBytes(t));
-        }));
+        list.forEach(t -> t.id = (t.id() == 0) ? QuickIO.id() : t.id());
+        indexEngine.setIndexes(list);
+        writeBatch(batch -> list.forEach(t -> batch.put(asBytes(t.id), asBytes(t))), e -> {
+            indexEngine.removeIndexList(list);
+            list.forEach(t -> t.id = 0L);
+        });
     }
 
 
     @SuppressWarnings("unchecked")
     public <T extends QuickIO.Object> void update(T t , Predicate<T> predicate) {
+        List<T> newLocalTList = new ArrayList<>();
+        List<T> oldLocalTList = new ArrayList<>();
         Map<String, Field> tMap = Tools.getFields(t.getClass());
         tMap.remove("id");
         iteration((key, value) -> {
@@ -68,17 +77,25 @@ class QuickDB extends LevelIO {
                     Field localField = localTMap.getOrDefault(tFieldName, null);
                     Object tFieldValue = Tools.getFieldValue(t, tField);
                     if (localField != null && tFieldValue != null) {
+                        oldLocalTList.add((T) localT.clone());
                         Tools.setFieldValue(localT, localField, tFieldValue);
+                        newLocalTList.add(localT);
                     }
                 });
-                put(asBytes(localT.id()), asBytes(localT));
             }
+        });
+        indexEngine.setIndexes(newLocalTList);
+        writeBatch(batch -> newLocalTList.forEach(t1 -> batch.put(asBytes(t1.id()), asBytes(t1))), e -> {
+            indexEngine.removeIndexList(newLocalTList);
+            indexEngine.setIndexes(oldLocalTList);
         });
     }
 
 
     public boolean delete(long id) {
-        return delete(asBytes(id));
+        delete(asBytes(id));
+        indexEngine.removeIndex(id);
+        return true;
     }
 
 
@@ -88,15 +105,18 @@ class QuickDB extends LevelIO {
                 batch.delete(asBytes(id));
             }
         });
+        indexEngine.removeIndexes(ids);
     }
 
 
     public void delete(List<Long> ids) {
-        writeBatch(batch -> ids.forEach(id -> batch.delete(asBytes((long) id))));
+        writeBatch(batch -> ids.forEach(id -> batch.delete(asBytes(id.longValue()))));
+        indexEngine.removeIndexes(ids);
     }
 
 
     public <T extends QuickIO.Object> void delete(Class<T> tClass, Predicate<T> predicate) {
+        List<Long> ids = new ArrayList<>();
         writeBatch(batch -> iteration((key, value) -> {
             T t = asObject(value, tClass);
             if (t != null) {
@@ -104,8 +124,10 @@ class QuickDB extends LevelIO {
                     return;
                 }
                 batch.delete(key);
+                ids.add(t.id());
             }
         }));
+        indexEngine.removeIndexes(ids);
     }
 
 
@@ -194,7 +216,7 @@ class QuickDB extends LevelIO {
     public <T extends QuickIO.Object> List<T> find(Class<T> tClass, List<Long> ids) {
         List<T> list = new ArrayList<>();
         ids.forEach(id -> {
-            byte[] key = asBytes((long) id);
+            byte[] key = asBytes(id.longValue());
             byte[] value = get(key);
             T t = (value != null) ? asObject(value, tClass) : null;
             Optional.ofNullable(t).ifPresent(list::add);
@@ -252,6 +274,27 @@ class QuickDB extends LevelIO {
     }
 
 
+    public <T extends QuickIO.Object> T findWithIndex(Class<T> tClass, Consumer<FindOptions> consumer) {
+        FindOptions<T> options = new FindOptions<>(tClass);
+        consumer.accept(options);
+        long id = indexEngine.getIndexId(tClass, options.indexName, options.indexValue);
+        return find(tClass, id);
+    }
+
+
+    public <T extends QuickIO.Object> boolean exist(Class<T> tClass, Consumer<FindOptions> consumer) {
+        FindOptions<T> options = new FindOptions<>(tClass);
+        consumer.accept(options);
+        return indexEngine.exist(tClass, options.indexName, options.indexValue);
+    }
+
+
+    public <T extends QuickIO.Object> void dropIndex(Class<T> tClass, String fieldName) {
+        List<T> list = find(tClass);
+        indexEngine.dropIndex(list, fieldName);
+    }
+
+
     public <T extends QuickIO.Object> int count(Class<T> tClass, Predicate<T> predicate) {
         AtomicInteger count = new AtomicInteger(0);
         iteration((key, value) -> {
@@ -269,6 +312,23 @@ class QuickDB extends LevelIO {
 
     public <T extends QuickIO.Object> int count(Class<T> tClass) {
         return count(tClass, null);
+    }
+
+
+    public void export(Consumer<String> consumer1, Consumer<Exception> consumer2) {
+        String basePath = String.format("%s%s/", Constants.OUT_DB_PATH, name);
+        String fileName = String.format("%s_%d.txt", name, System.currentTimeMillis());
+        Exporter exporter = new Exporter(basePath, fileName);
+        StringBuilder builder = new StringBuilder();
+        iteration((key, value) -> {
+            Object object = asObject(value);
+            if (object != null) {
+                String className = object.getClass().getSimpleName();
+                Exporter.DBObject dbObject = new Exporter.DBObject(className, object);
+                builder.append(new JSONObject(dbObject)).append("\n");
+            }
+        });
+        exporter.exportFile(builder.toString(), consumer1, consumer2);
     }
 
 

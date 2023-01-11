@@ -25,8 +25,12 @@ import static com.github.artbits.quickio.Tools.asObject;
 
 class QuickKV extends LevelIO {
 
-    QuickKV(String path) {
-        super(path);
+    private final String name;
+
+
+    QuickKV(String name) {
+        super((name == null || name.isEmpty()) ? null : Constants.KV_PATH + name);
+        this.name = name;
     }
 
 
@@ -58,13 +62,31 @@ class QuickKV extends LevelIO {
 
 
     public boolean remove(String key) {
-        return delete(asBytes(key));
+        delete(asBytes(key));
+        return true;
     }
 
 
     public boolean containsKey(String key) {
         byte[] bytes = get(asBytes(key));
         return bytes != null;
+    }
+
+
+    public void export(Consumer<String> consumer1, Consumer<Exception> consumer2) {
+        String basePath = String.format("%s%s/", Constants.OUT_KV_PATH, name);
+        String fileName = String.format("%s_%d.txt", name, System.currentTimeMillis());
+        Exporter exporter = new Exporter(basePath, fileName);
+        StringBuilder builder = new StringBuilder();
+        iteration((key, value) -> {
+            String s = new String(key);
+            Object o = asObject(value);
+            if (o != null) {
+                Exporter.KVObject kvObject = new Exporter.KVObject(s, o);
+                builder.append(new JSONObject(kvObject)).append("\n");
+            }
+        });
+        exporter.exportFile(builder.toString(), consumer1, consumer2);
     }
 
 
