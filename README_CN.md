@@ -9,12 +9,13 @@ QuickIO 是一个多功能嵌入式数据库。底层基于 LevelDB 引擎和 Ja
 
 + 优点
    + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装和配置。
-   + 像 ``MongoDB`` 或 [Diskv](https://github.com/peterbourgon/diskv) 一样的NoSQL数据库，使用简单。
+   + 像 ``MongoDB`` 或 ``Diskv`` 一样的NoSQL数据库，使用简单。
+   + 基于 ``Leveldb`` 设计的 **唯一索引** ，非常高效。
    + 支持存储Java bean、Key-Value格式和文件类型的数据。
    + 简易的API，使用Java Lambda表达式优雅操作。
    + 读写快速，满足中小型数据量的使用场景。
 + 缺点
-   + 非关系型数据库，不支持SQL语句、索引和事务。
+   + 非关系型数据库，不支持SQL语句和事务。
    + 只支持单进程运行，不支持多进程。
 + 了解更多
    + 🚀 了解 QuickIO 性能数据，请点击 [这里](performance_data.md)。
@@ -29,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.1'
+    implementation 'com.github.artbits:quickio:1.2.2'
 }
 ```
 
@@ -43,7 +44,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
@@ -57,6 +58,7 @@ public class User extends QuickIO.Object {
     public Integer age;
     public String name;
     public String gender;
+    @Index                  //唯一索引注解，可选择性添加
     public String email;
 
     public User(Consumer<User> consumer) {
@@ -206,6 +208,18 @@ List<User> users10 = db.findWithTime(User.class, timestamp -> {
 
 
 
+//索引操作：
+//按索引指定查找User类型的Java bean
+User user = db.findWithIndex(User.class, options -> options.index("email", "liming@gmail.com"));
+
+//使用索引查询Java bean是否存在
+boolean b = db.exist(User.class, options -> options.index("email", "liming@gmail.com"));
+
+//删除 @Index 注解，亦需要使用 dropIndex 方法移除对应索引字段的数据
+db.dropIndex(User.class, "email");
+
+
+
 //计数：
 //统计User类型数据的数量
 int res1 = db.count(User.class);
@@ -238,6 +252,13 @@ try (QuickIO.DB db = new QuickIO.DB("sample_db")) {
 } catch (Exception e) {
     e.printStackTrace();
 }
+
+//导出db数据
+db.export(s -> {
+    QuickIO.println("Path to export file: " + s);
+}, e -> {
+    QuickIO.println("Exception message: " + e.getMessage());
+});
 
 //手动关闭数据库，你可以将其留给JVM，而无需手动关闭它
 db.close();
@@ -327,6 +348,13 @@ try (QuickIO.KV kv = new QuickIO.KV("sample_kv")) {
 } catch (Exception e) {
     e.printStackTrace();
 }
+
+//导出kv数据
+kv.export(s -> {
+    QuickIO.println("Path to export file: " + s);
+}, e -> {
+    QuickIO.println("Exception message: " + e.getMessage());
+});
 
 //手动关闭数据库，你可以将其留给JVM，而无需手动关闭它
 kv.close();
