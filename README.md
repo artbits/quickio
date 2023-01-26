@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.2'
+    implementation 'com.github.artbits:quickio:1.2.3'
 }
 ```
 
@@ -44,7 +44,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 </dependency>
 ```
 
@@ -436,6 +436,27 @@ QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
 ### 5. Tips.
 ```java
 //Tips 1:
+//Customize parameters of DB, KV and Can.
+//Custom DB parameters.
+QuickIO.DB db = new QuickIO.DB(options -> options
+        .name("sample_db")              //DB name.
+        .basePath("/usr/qio")           //Base directory path of custom DB storage.
+        .cacheSize(16L * 1024 *1024));  //Custom DB cache size, 16MB.
+
+//Custom KV parameters.
+QuickIO.KV kv = new QuickIO.KV(options -> options
+        .name("sample_kv")              //KV name.
+        .basePath("/usr/qio")           //Base directory path of custom KV storage.
+        .cacheSize(16L * 1024 *1024));  //Custom KV cache size, 16MB.
+
+//Custom Can parameters.
+QuickIO.Can can = new QuickIO.Can(options -> options
+        .name("sample_can")              //Can name.
+        .basePath("/usr/qio"));          //Base directory path of custom Can storage.
+
+
+
+//Tips 2:
 //Shared DB and independent DB operations. KV and Can operate similarly.
 //Create shared and independent DB.
 QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
@@ -452,7 +473,7 @@ bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
 
 
 
-//Tips 2:
+//Tips 3:
 //Performance optimization when finding data.
 //Assume that the list has a large number of elements.
 List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
