@@ -33,21 +33,25 @@ import java.util.function.Consumer;
 
 class LevelIO implements AutoCloseable {
 
-    private final File file;
-    private final DBFactory factory;
+    private File file;
+    private DBFactory factory;
     private DB db;
     private Runnable closeRunnable;
 
 
-    LevelIO(String path) {
+    void open(QuickIO.Options options) {
+        if (options.name == null || options.name.isEmpty()) {
+            throw new RuntimeException("The name cannot be null or empty");
+        } else if (options.name.contains("/")) {
+            throw new RuntimeException("Name cannot contain \"/\"");
+        }
+        if (options.cacheSize == null || options.cacheSize <= 0) {
+            options.cacheSize = 100L * 1024 * 1024;
+        }
         try {
-            Optional.ofNullable(path).orElseThrow(() -> new RuntimeException("The name cannot be null or empty"));
-            file = new File(path);
+            file = new File(options.basePath + options.name);
             factory = new Iq80DBFactory();
-            Options options = new Options();
-            options.createIfMissing(true);
-            options.cacheSize(50 * 1024 * 1024);
-            db = factory.open(file, options);
+            db = factory.open(file, new Options().createIfMissing(true).cacheSize(options.cacheSize));
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
             throw new RuntimeException(e);

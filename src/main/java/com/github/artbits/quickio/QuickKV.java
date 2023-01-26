@@ -25,12 +25,25 @@ import static com.github.artbits.quickio.Tools.asObject;
 
 class QuickKV extends LevelIO {
 
-    private final String name;
+    private final QuickIO.Options options;
+
+
+    QuickKV(Consumer<QuickIO.Options> consumer) {
+        options = new QuickIO.Options();
+        consumer.accept(options);
+        if (options.basePath == null) {
+            options.outBasePath = Constants.OUT_KV_PATH;
+            options.basePath = Constants.KV_PATH;
+        } else {
+            options.outBasePath = (options.basePath + "/" + Constants.OUT_KV_PATH).replaceAll("//", "/");
+            options.basePath = (options.basePath + "/" + Constants.KV_PATH).replaceAll("//", "/");
+        }
+        open(options);
+    }
 
 
     QuickKV(String name) {
-        super((name == null || name.isEmpty()) ? null : Constants.KV_PATH + name);
-        this.name = name;
+        this(options -> options.name = name);
     }
 
 
@@ -74,8 +87,8 @@ class QuickKV extends LevelIO {
 
 
     public void export(Consumer<String> consumer1, Consumer<Exception> consumer2) {
-        String basePath = String.format("%s%s/", Constants.OUT_KV_PATH, name);
-        String fileName = String.format("%s_%d.txt", name, System.currentTimeMillis());
+        String basePath = String.format("%s%s/", options.outBasePath, options.name);
+        String fileName = String.format("%s_%d.txt", options.name, System.currentTimeMillis());
         Exporter exporter = new Exporter(basePath, fileName);
         StringBuilder builder = new StringBuilder();
         iteration((key, value) -> {

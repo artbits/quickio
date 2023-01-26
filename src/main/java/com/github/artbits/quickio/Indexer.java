@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 import static com.github.artbits.quickio.Tools.*;
 
-final class IndexEngine extends LevelIO {
+final class Indexer extends LevelIO {
 
     private static class IndexObject implements Serializable {
         String className;
@@ -52,8 +52,12 @@ final class IndexEngine extends LevelIO {
     }
 
 
-    IndexEngine(String path) {
-        super(path);
+    Indexer(String basePath, String name) {
+        QuickIO.Options options = new QuickIO.Options();
+        options.name = Constants.INDEX;
+        options.basePath = basePath + name + "/";
+        options.cacheSize = 10L * 1024 * 1024;
+        open(options);
     }
 
 

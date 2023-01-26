@@ -23,7 +23,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 class QuickCan {
@@ -31,14 +31,30 @@ class QuickCan {
     private final String path;
 
 
-    QuickCan(String name) {
+    QuickCan(Consumer<QuickIO.Options> consumer) {
+        QuickIO.Options options = new QuickIO.Options();
+        consumer.accept(options);
+        if (options.name == null || options.name.isEmpty()) {
+            throw new RuntimeException("The name cannot be null or empty");
+        } else if (options.name.contains("/")) {
+            throw new RuntimeException("Name cannot contain \"/\"");
+        }
+        if (options.basePath == null) {
+            options.basePath = Constants.CAN_PATH;
+        } else {
+            options.basePath = (options.basePath + "/" + Constants.CAN_PATH).replaceAll("//", "/");
+        }
         try {
-            this.path = Optional.ofNullable((name == null || name.isEmpty()) ? null : Constants.CAN_PATH + name)
-                    .orElseThrow(() -> new RuntimeException("The name cannot be null or empty"));
+            path = options.basePath + options.name;
             Files.createDirectories(Paths.get(path));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    QuickCan(String name) {
+        this(options -> options.name = name);
     }
 
 

@@ -22,5 +22,5 @@ interface Constants {
     String CAN_PATH = "data/can/";
     String OUT_DB_PATH = "data/out/db/";
     String OUT_KV_PATH = "data/out/kv/";
-    String INDEX_PATH = "/index";
+    String INDEX = "index";
 }
