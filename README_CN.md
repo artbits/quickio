@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.2'
+    implementation 'com.github.artbits:quickio:1.2.3'
 }
 ```
 
@@ -44,7 +44,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 </dependency>
 ```
 
@@ -430,6 +430,27 @@ QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
 ### 5. 小提示
 ```java
 //提示一：
+//自定义DB、KV和Can的参数
+//自定义DB参数
+QuickIO.DB db = new QuickIO.DB(options -> options
+        .name("sample_db")              //DB名称
+        .basePath("/usr/qio")           //自定义DB存储的基础目录路径
+        .cacheSize(16L * 1024 *1024));  //自定义DB缓存大小，16MB
+
+//自定义KV参数
+QuickIO.KV kv = new QuickIO.KV(options -> options
+        .name("sample_kv")              //KV名称
+        .basePath("/usr/qio")           //自定义KV存储的基础目录路径
+        .cacheSize(16L * 1024 *1024));  //自定义KV缓存大小，16MB
+
+//自定义Can参数
+QuickIO.Can can = new QuickIO.Can(options -> options
+        .name("sample_can")              //Can名称
+        .basePath("/usr/qio"));          //自定义Can存储的基础目录路径
+
+
+
+//提示二：
 //共享DB和独立DB的操作，KV和Can操作类似
 //创建共享和独立DB
 QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
@@ -446,7 +467,7 @@ bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
 
 
 
-//提示二:
+//提示三:
 //查找数据时的性能优化
 //假设列表包含大量元素
 List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
