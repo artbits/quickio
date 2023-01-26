@@ -31,23 +31,37 @@ import static com.github.artbits.quickio.Tools.*;
 
 class QuickDB extends LevelIO {
 
-    private final String name;
-    private final IndexEngine indexEngine;
+    private final QuickIO.Options options;
+    private final Indexer indexer;
+
+
+    QuickDB(Consumer<QuickIO.Options> consumer) {
+        options = new QuickIO.Options();
+        consumer.accept(options);
+        if (options.basePath == null) {
+            options.outBasePath = Constants.OUT_DB_PATH;
+            options.basePath = Constants.DB_PATH;
+        } else {
+            options.outBasePath = (options.basePath + "/" + Constants.OUT_DB_PATH).replaceAll("//", "/");
+            options.basePath = (options.basePath + "/" + Constants.DB_PATH).replaceAll("//", "/");
+        }
+        options.shareable = Optional.ofNullable(options.shareable).orElse(true);
+        open(options);
+        indexer = new Indexer(options.basePath, options.name);
+        closeListener(() -> Optional.ofNullable(indexer).ifPresent(LevelIO::close));
+    }
 
 
     QuickDB(String name) {
-        super((name == null || name.isEmpty()) ? null : Constants.DB_PATH + name);
-        indexEngine = new IndexEngine(Constants.DB_PATH + name + Constants.INDEX_PATH);
-        this.closeListener(() -> Optional.ofNullable(indexEngine).ifPresent(LevelIO::close));
-        this.name = name;
+        this(options -> options.name = name);
     }
 
 
     public <T extends QuickIO.Object> void save(T t) {
         t.id = (t.id() == 0 || getDigit(t.id()) < 18) ? QuickIO.id() : t.id();
-        indexEngine.setIndex(t);
+        indexer.setIndex(t);
         put(asBytes(t.id), asBytes(t), e -> {
-            indexEngine.removeIndex(t);
+            indexer.removeIndex(t);
             t.id = 0L;
         });
     }
@@ -55,9 +69,9 @@ class QuickDB extends LevelIO {
 
     public <T extends QuickIO.Object> void save(List<T> list) {
         list.forEach(t -> t.id = (t.id() == 0) ? QuickIO.id() : t.id());
-        indexEngine.setIndexes(list);
+        indexer.setIndexes(list);
         writeBatch(batch -> list.forEach(t -> batch.put(asBytes(t.id), asBytes(t))), e -> {
-            indexEngine.removeIndexList(list);
+            indexer.removeIndexList(list);
             list.forEach(t -> t.id = 0L);
         });
     }
@@ -84,17 +98,17 @@ class QuickDB extends LevelIO {
                 });
             }
         });
-        indexEngine.setIndexes(newLocalTList);
+        indexer.setIndexes(newLocalTList);
         writeBatch(batch -> newLocalTList.forEach(t1 -> batch.put(asBytes(t1.id()), asBytes(t1))), e -> {
-            indexEngine.removeIndexList(newLocalTList);
-            indexEngine.setIndexes(oldLocalTList);
+            indexer.removeIndexList(newLocalTList);
+            indexer.setIndexes(oldLocalTList);
         });
     }
 
 
     public boolean delete(long id) {
         delete(asBytes(id));
-        indexEngine.removeIndex(id);
+        indexer.removeIndex(id);
         return true;
     }
 
@@ -105,13 +119,13 @@ class QuickDB extends LevelIO {
                 batch.delete(asBytes(id));
             }
         });
-        indexEngine.removeIndexes(ids);
+        indexer.removeIndexes(ids);
     }
 
 
     public void delete(List<Long> ids) {
         writeBatch(batch -> ids.forEach(id -> batch.delete(asBytes(id.longValue()))));
-        indexEngine.removeIndexes(ids);
+        indexer.removeIndexes(ids);
     }
 
 
@@ -127,7 +141,7 @@ class QuickDB extends LevelIO {
                 ids.add(t.id());
             }
         }));
-        indexEngine.removeIndexes(ids);
+        indexer.removeIndexes(ids);
     }
 
 
@@ -277,7 +291,7 @@ class QuickDB extends LevelIO {
     public <T extends QuickIO.Object> T findWithIndex(Class<T> tClass, Consumer<FindOptions> consumer) {
         FindOptions<T> options = new FindOptions<>(tClass);
         consumer.accept(options);
-        long id = indexEngine.getIndexId(tClass, options.indexName, options.indexValue);
+        long id = indexer.getIndexId(tClass, options.indexName, options.indexValue);
         return find(tClass, id);
     }
 
@@ -285,13 +299,13 @@ class QuickDB extends LevelIO {
     public <T extends QuickIO.Object> boolean exist(Class<T> tClass, Consumer<FindOptions> consumer) {
         FindOptions<T> options = new FindOptions<>(tClass);
         consumer.accept(options);
-        return indexEngine.exist(tClass, options.indexName, options.indexValue);
+        return indexer.exist(tClass, options.indexName, options.indexValue);
     }
 
 
     public <T extends QuickIO.Object> void dropIndex(Class<T> tClass, String fieldName) {
         List<T> list = find(tClass);
-        indexEngine.dropIndex(list, fieldName);
+        indexer.dropIndex(list, fieldName);
     }
 
 
@@ -316,8 +330,8 @@ class QuickDB extends LevelIO {
 
 
     public void export(Consumer<String> consumer1, Consumer<Exception> consumer2) {
-        String basePath = String.format("%s%s/", Constants.OUT_DB_PATH, name);
-        String fileName = String.format("%s_%d.txt", name, System.currentTimeMillis());
+        String basePath = String.format("%s%s/", options.outBasePath, options.name);
+        String fileName = String.format("%s_%d.txt", options.name, System.currentTimeMillis());
         Exporter exporter = new Exporter(basePath, fileName);
         StringBuilder builder = new StringBuilder();
         iteration((key, value) -> {

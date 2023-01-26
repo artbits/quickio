@@ -17,6 +17,7 @@
 package com.github.artbits.quickio;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 public final class QuickIO {
 
@@ -53,9 +54,44 @@ public final class QuickIO {
     }
 
 
+    public static class Options {
+        String name;
+        String basePath;
+        String outBasePath;
+        Long cacheSize;
+        Boolean shareable;
+
+        Options() { }
+
+        public Options name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Options basePath(String basePath) {
+            this.basePath = basePath;
+            return this;
+        }
+
+        public Options cacheSize(Long cacheSize) {
+            this.cacheSize = cacheSize;
+            return this;
+        }
+
+        private Options shareable(Boolean shareable) {
+            this.shareable = shareable;
+            return this;
+        }
+    }
+
+
     public static class DB extends QuickDB {
         public DB(String name) {
             super(name);
+        }
+
+        public DB(Consumer<Options> consumer) {
+            super(consumer);
         }
     }
 
@@ -64,12 +100,20 @@ public final class QuickIO {
         public KV(String name) {
             super(name);
         }
+
+        public KV(Consumer<Options> consumer) {
+            super(consumer);
+        }
     }
 
 
     public static class Can extends QuickCan {
         public Can(String name) {
             super(name);
+        }
+
+        public Can(Consumer<Options> consumer) {
+            super(consumer);
         }
     }
 
