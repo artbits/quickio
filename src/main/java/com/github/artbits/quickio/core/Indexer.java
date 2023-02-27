@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio;
+package com.github.artbits.quickio.core;
 
 import com.github.artbits.quickio.annotations.Index;
+import com.github.artbits.quickio.exception.QIOException;
 import org.iq80.leveldb.WriteBatch;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.github.artbits.quickio.Tools.*;
+import static com.github.artbits.quickio.core.Constants.INDEX;
 
-final class Indexer extends LevelIO {
+final class Indexer {
 
-    private static class IndexObject implements Serializable {
+    private final EngineIO engine;
+
+
+    private static class IndexObject {
         String className;
         String filedName;
         Object value;
@@ -42,34 +45,42 @@ final class Indexer extends LevelIO {
 
         @Override
         public String toString() {
-            return "(" + className + "," + filedName + "," + value + ")";
+            return "[" + className + "," + filedName + "," + value + "]";
         }
     }
 
 
-    private static class IndexMapObject implements Serializable {
+    private static class IndexMapObject {
         Map<String, String> indexMap = new HashMap<>();
     }
 
 
-    Indexer(String basePath, String name) {
-        QuickIO.Options options = new QuickIO.Options();
-        options.name = Constants.INDEX;
-        options.basePath = basePath + name + "/";
-        options.cacheSize = 10L * 1024 * 1024;
-        open(options);
+    Indexer(EngineIO engine, String path, String name) {
+        this.engine = engine.open(Config.of(c -> c.name(INDEX)
+                .path(path + "/" + name)
+                .cache(10L * 1024 * 1024)));
     }
 
 
-    private <T extends QuickIO.Object> void setIndex(WriteBatch batch, T t) {
+    void close() {
+        engine.close();
+    }
+
+
+    void destroy() {
+        engine.destroy();
+    }
+
+
+    private <T extends IOEntity> void setIndex(WriteBatch batch, T t) {
         List<IndexObject> indexObjects = extractIndexObjects(t);
         if (indexObjects.size() == 0) return;
-        long value1 = t.id();
-        long key2 = t.id();
-        byte[] valueBytes2 = get(asBytes(key2));
+        long value1 = t.objectId();
+        long key2 = t.objectId();
+        byte[] valueBytes2 = engine.get(Codec.encodeKey(key2));
         AtomicReference<IndexMapObject> atomicReference = new AtomicReference<>();
         if (valueBytes2 != null) {
-            IndexMapObject indexMapObject = asObject(valueBytes2, IndexMapObject.class);
+            IndexMapObject indexMapObject = Codec.decode(valueBytes2, IndexMapObject.class);
             atomicReference.set(indexMapObject);
         }
         if (atomicReference.get() == null) {
@@ -81,68 +92,68 @@ final class Indexer extends LevelIO {
             String oldKey1 = value2.indexMap.getOrDefault(indexObject.filedName, null);
             if (oldKey1 == null) {
                 value2.indexMap.put(indexObject.filedName, key1);
-                batch.put(asBytes(key1), asBytes(value1));
+                batch.put(Codec.encode(key1), Codec.encodeKey(value1));
             }
             if (!key1.equals(oldKey1)) {
                 value2.indexMap.put(indexObject.filedName, key1);
-                batch.put(asBytes(key1), asBytes(value1));
-                Optional.ofNullable(oldKey1).ifPresent(key -> batch.delete(asBytes(key)));
+                batch.put(Codec.encode(key1), Codec.encodeKey(value1));
+                Optional.ofNullable(oldKey1).ifPresent(key -> batch.delete(Codec.encode(key)));
             }
         });
-        batch.put(asBytes(key2), asBytes(value2));
+        batch.put(Codec.encodeKey(key2), Codec.encode(value2));
     }
 
 
-    <T extends QuickIO.Object> void setIndex(T t) {
-        writeBatch(batch -> setIndex(batch, t));
+    <T extends IOEntity> void setIndex(T t) {
+        engine.writeBatch(batch -> setIndex(batch, t));
     }
 
 
-    <T extends QuickIO.Object> void setIndexes(List<T> list) {
+    <T extends IOEntity> void setIndexes(List<T> list) {
         if (list.size() < 1) return;
-        if (getAnnotationFields(list.get(0)).size() == 0) return;
+        if (Utility.getAnnotationFields(list.get(0)).size() == 0) return;
         Map<String, Boolean> guardMap = new HashMap<>();
         list.forEach(t -> {
             List<IndexObject> indexObjects = extractIndexObjects(t);
             indexObjects.forEach(indexObject -> {
                 String key1 = indexObject.toString();
                 if (guardMap.getOrDefault(key1, false)) {
-                    throw new RuntimeException(key1 + " already exists");
+                    throw new QIOException(key1 + Constants.INDEX_ALREADY_EXISTS);
                 } else {
                     guardMap.put(key1, true);
                 }
             });
         });
-        writeBatch(batch -> list.forEach(t -> setIndex(batch, t)));
+        engine.writeBatch(batch -> list.forEach(t -> setIndex(batch, t)));
     }
 
 
     void removeIndex(long id) {
         if (id == 0) return;
-        byte[] valueBytes2 = get(asBytes(id));
+        byte[] valueBytes2 = engine.get(Codec.encodeKey(id));
         if (valueBytes2 != null) {
-            writeBatch(batch -> {
-                IndexMapObject indexMapObject = asObject(valueBytes2, IndexMapObject.class);
-                indexMapObject.indexMap.values().forEach(key1 -> batch.delete(asBytes(key1)));
-                batch.delete(asBytes(id));
+            engine.writeBatch(batch -> {
+                IndexMapObject indexMapObject = Codec.decode(valueBytes2, IndexMapObject.class);
+                indexMapObject.indexMap.values().forEach(key1 -> batch.delete(Codec.encode(key1)));
+                batch.delete(Codec.encodeKey(id));
             });
         }
     }
 
 
-    <T extends QuickIO.Object> void removeIndex(T t) {
-        removeIndex(t.id());
+    <T extends IOEntity> void removeIndex(T t) {
+        removeIndex(t.objectId());
     }
 
 
     void removeIndexes(long... ids) {
-        writeBatch(batch -> {
+        engine.writeBatch(batch -> {
             for (long id : ids) {
-                byte[] valueBytes2 = get(asBytes(id));
+                byte[] valueBytes2 = engine.get(Codec.encodeKey(id));
                 if (valueBytes2 != null) {
-                    IndexMapObject value2 = asObject(valueBytes2, IndexMapObject.class);
-                    value2.indexMap.values().forEach(key1 -> batch.delete(asBytes(key1)));
-                    batch.delete(asBytes(id));
+                    IndexMapObject value2 = Codec.decode(valueBytes2, IndexMapObject.class);
+                    value2.indexMap.values().forEach(key1 -> batch.delete(Codec.encode(key1)));
+                    batch.delete(Codec.encodeKey(id));
                 }
             }
         });
@@ -158,19 +169,19 @@ final class Indexer extends LevelIO {
     }
 
 
-    <T extends QuickIO.Object> void removeIndexList(List<T> list) {
-        List<Long> ids = list.stream().map(QuickIO.Object::id).filter(id -> id != 0).collect(Collectors.toList());
+    <T extends IOEntity> void removeIndexList(List<T> list) {
+        List<Long> ids = list.stream().map(IOEntity::objectId).filter(id -> id != 0).collect(Collectors.toList());
         removeIndexes(ids);
     }
 
 
-    <T extends QuickIO.Object> void dropIndex(List<T> list, String fieldName) {
-        writeBatch(batch -> list.forEach(t -> {
-            byte[] valueBytes2 = get(asBytes(t.id()));
+    <T extends IOEntity> void dropIndex(List<T> list, String fieldName) {
+        engine.writeBatch(batch -> list.forEach(t -> {
+            byte[] valueBytes2 = engine.get(Codec.encode(t.objectId()));
             if (valueBytes2 != null) {
-                IndexMapObject value2 = asObject(valueBytes2, IndexMapObject.class);
+                IndexMapObject value2 = Codec.decode(valueBytes2, IndexMapObject.class);
                 String key1 = value2.indexMap.getOrDefault(fieldName, null);
-                Optional.ofNullable(key1).ifPresent(key -> batch.delete(asBytes(key)));
+                Optional.ofNullable(key1).ifPresent(key -> batch.delete(Codec.encode(key)));
             }
         }));
     }
@@ -180,9 +191,9 @@ final class Indexer extends LevelIO {
         inspectIndexField(tClass, fieldName);
         IndexObject indexObject = new IndexObject(tClass.getSimpleName(), fieldName, filedValue);
         String key1 = indexObject.toString();
-        byte[] keyBytes1 = asBytes(key1);
-        byte[] valueBytes1 = get(keyBytes1);
-        return (valueBytes1 != null) ? asLong(valueBytes1) : 0;
+        byte[] keyBytes1 = Codec.encode(key1);
+        byte[] valueBytes1 = engine.get(keyBytes1);
+        return (valueBytes1 != null) ? Codec.decodeKey(valueBytes1) : 0;
     }
 
 
@@ -202,21 +213,21 @@ final class Indexer extends LevelIO {
     }
 
 
-    private <T extends QuickIO.Object> List<IndexObject> extractIndexObjects(T t) {
+    private <T extends IOEntity> List<IndexObject> extractIndexObjects(T t) throws QIOException {
         List<IndexObject> indexObjects = new ArrayList<>();
-        List<Field> fields = getAnnotationFields(t);
+        List<Field> fields = Utility.getAnnotationFields(t);
         String className = t.getClass().getSimpleName();
         for (Field field : fields) {
             String fieldName = field.getName();
-            Object fieldValue = getFieldValue(t, field);
+            Object fieldValue = Utility.getFieldValue(t, field);
             if (fieldValue == null) continue;
             IndexObject indexObject = new IndexObject(className, fieldName, fieldValue);
             String key1 = indexObject.toString();
-            byte[] valueBytes1 = get(asBytes(key1));
+            byte[] valueBytes1 = engine.get(Codec.encode(key1));
             if (valueBytes1 != null) {
-                long value1 = asLong(valueBytes1);
-                if (value1 != t.id()) {
-                    throw new RuntimeException(key1 + " already exists");
+                long value1 = Codec.decodeKey(valueBytes1);
+                if (value1 != t.objectId()) {
+                    throw new QIOException(key1 + Constants.INDEX_ALREADY_EXISTS);
                 }
             }
             indexObjects.add(indexObject);

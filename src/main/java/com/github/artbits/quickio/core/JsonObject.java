@@ -14,43 +14,37 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio;
+package com.github.artbits.quickio.core;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.BiConsumer;
 
-final class JSONObject {
+final class JsonObject {
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
 
-    <T> JSONObject(T t) {
-        initMap();
-        ergodicFields(t, this::putMap);
+    <T> JsonObject(T t) {
+        beanToMap(t);
     }
 
 
-    private <T> void ergodicFields(T t, BiConsumer<String, Object> consumer) {
+    private <T> void beanToMap(T t) {
         try {
+            map.put("\"_id\"", null);
             Class<?> clazz = t.getClass();
             while (clazz != null) {
                 for (Field field : clazz.getDeclaredFields()) {
                     field.setAccessible(true);
-                    consumer.accept(field.getName(), field.get(t));
+                    putMap(field.getName(), field.get(t));
                 }
                 clazz = clazz.getSuperclass();
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-
-    private void initMap() {
-        map.put("\"id\"", null);
     }
 
 
@@ -62,7 +56,7 @@ final class JSONObject {
         }
 
         if (fieldValue instanceof String || fieldValue instanceof Character) {
-            if (!String.valueOf(fieldValue).equals("\u0000")) {
+            if (!"\u0000".equals(String.valueOf(fieldValue))) {
                 map.put(fieldName, "\"" + fieldValue + "\"");
             }
             return;
@@ -87,7 +81,7 @@ final class JSONObject {
             map.put(fieldName, mapToJSONString((Map<?, ?>) fieldValue));
             return;
         }
-        map.put(fieldName, new JSONObject(fieldValue).toString());
+        map.put(fieldName, new JsonObject(fieldValue).toString());
     }
 
 
@@ -116,7 +110,7 @@ final class JSONObject {
             ifTextType(o, () -> {
                 builder.append("\"").append(o).append("\"").append(",");
             }, () -> {
-                builder.append(new JSONObject(o)).append(",");
+                builder.append(new JsonObject(o)).append(",");
             });
         }
         return builder.deleteCharAt(builder.length() - 1).append("]").toString();
@@ -165,7 +159,7 @@ final class JSONObject {
                 ifTextType(o, () -> {
                     builder.append("\"").append(o).append("\"").append(",");
                 }, () -> {
-                    builder.append(new JSONObject(o)).append(",");
+                    builder.append(new JsonObject(o)).append(",");
                 });
             });
         });
@@ -184,7 +178,7 @@ final class JSONObject {
                 ifTextType(v, () -> {
                     builder.append("\"").append(v).append("\"").append(",");
                 }, () -> {
-                    builder.append(new JSONObject(v)).append(",");
+                    builder.append(new JsonObject(v)).append(",");
                 });
             });
         }));
