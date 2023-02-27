@@ -4,22 +4,18 @@
 
 English | [中文](README_CN.md)
 
-# QuickIO
-QuickIO is a versatile embedded database. The bottom layer is designed based on the LevelDB engine and Java NIO, and Hessian is used to serialize/deserialize data. Support store Java bean, Key-Value format and file type data. Zero configuration, Java code operation, fast and efficient.
 
-+ Advantage
-   + Embedded databases like ``SQLite`` do not need to be installed and configured.
-   + Like ``MongoDB`` or ``Diskv`` same NoSQL database, easy to use.
-   + The **unique index** designed based on ``Levedb`` is extremely efficient.
-   + Support store Java bean, Key-Value format and file type data.
-   + Simple API, using Java lambda expressions to operate gracefully.
-   + Fast reading and writing, meeting the use scenarios of small and medium data volumes.
-+ Shortcoming
-   + Non relational database, does not support SQL statements and transaction.
-   + Only single process operation is supported, not multiple processes.
-+ Learn more
-   + 🚀 For QuickIO performance data, click [here](performance_data.md).
-   + 🎯 Learn about the RSS server program written by the author using QuickIO: [RSS-Svr](https://github.com/artbits/rss-svr)
+## QuickIO
+QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, Key-Value and file** type data. Directly use Java code to operate the database, which is simple and efficient.
+
+
+## Features
++ Embedded databases like ``SQLite`` do not need to be installed or independent processes.
++ NoSQL databases like ``MongoDB`` or ``Diskv`` are very simple to use.
++ Support the storage of document, Key-Value and file type data. 
++ **Unique index** is supported to meet the requirement of fast query.
++ Simple API, elegant operation using Java Lambda expressions.
++ Fast reading and writing to meet the use scenarios of small and medium-sized data.
 
 
 ## Download
@@ -30,10 +26,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.2.3'
+    implementation 'com.github.artbits:quickio:1.3.0-beta'
 }
 ```
-
 Maven:
 ```xml
 <repository>
@@ -44,463 +39,81 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.2.3</version>
+    <version>1.3.0-beta</version>
 </dependency>
 ```
 
 
-## How do I use QuickIO?
-
-### 1. Store Java beans.
+## Usage
+Store data of document type.
 ```java
-//Create a Java bean, and extends the QuickIO.Object class.
-public class User extends QuickIO.Object {
-    public Integer age;
+try(DB db = QuickIO.usingDB("example_db")) {
+    Collection<Document> collection = db.collection(Document.class);
+
+    collection.save(new Document().put("city", "Canton").put("area", 7434.4));
+
+    Document document = collection.findOne(d -> "Canton".equals(d.get("city")));
+    Optional.ofNullable(document).ifPresent(IOEntity::printJson);
+}
+```
+Custom entity classes are stored according to the data of document type.
+```java
+public class Book extends IOEntity {
     public String name;
-    public String gender;
-    @Index                  //Unique index annotation, optionally added.
-    public String email;
-
-    public User(Consumer<User> consumer) {
-        consumer.accept(this);
+    public String author;
+    public float price;
+    
+    public static Book of(Consumer<Book> consumer) {
+        Book book = new Book();
+        consumer.accept(book);
+        return book;
     }
 }
 
 
+try(DB db = QuickIO.usingDB("example_db")) {
+    Collection<Book> collection = db.collection(Book.class);
 
-//Create QuickIO.DB object and set store directory.
-QuickIO.DB db = new QuickIO.DB("sample_db");
+    collection.save(Book.of(b -> {
+        b.name = "On java 8";
+        b.author = "Bruce Eckel";
+        b.price = 129.8f;
+    }));
 
-
-
-//Save:
-//Create User object and set data.
-User user = new User(u -> {
-    u.name = "LiMing";
-    u.age = 18;
-    u.gender = "male";
-    u.email = "liming@foxmail.com";
-});
-
-//Save data.
-db.save(user);
-
-//Saved successfully. The value of ID is not zero.
-QuickIO.println(user.id());
-//Saved successfully. Get the timestamp when saving.
-QuickIO.println(user.timestamp());
-//Java bean to JSON.
-QuickIO.println(user.toJson());
-
-//Update the stored data according to the ID.
-user.age = 20;
-db.save(user);
-
-//Batch save data.
-List<User> users = Arrays.asList(user1, user2, user3);
-db.save(users);
-//Java beans are printed to the console in JSON format.
-users.forEach(QuickIO.Object::printJson);
-
-
-
-//Update:
-//New a User object and set the data to be modified.
-User user = new User(u -> u.age = 25);
-
-//Update data by condition.
-db.update(user, u -> {
-    boolean b1 = Objects.equals(u.name, "LiMing");
-    boolean b2 = Objects.equals(u.email, "liming@foxmail.com");
-    return b1 && b2;
-});
-
-
-
-//Delete:
-//Delete by ID. Deletion succeeded, the result is true.
-boolean res = db.delete(user.id());
-QuickIO.println(res);
-
-//Batch delete by ID.
-db.delete(id1, id2, id3, id4);
-
-//Batch delete by ID list.
-db.delete(Arrays.asList(id1, id2, id3, id4));
-
-//Delete all data of User type.
-db.delete(User.class);
-
-//Delete by condition.
-db.delete(User.class, u -> u.age >= 16 && u.age <= 18);
-
-
-
-//Find:
-//Find the first Java bean of type User.
-User user1 = db.findFirst(User.class);
-
-//Find the first Java bean of User type by condition.
-User user2 = db.findFirst(User.class, u -> u.age >= 18);
-
-//Find the last Java bean of type User.
-User user3 = db.findLast(User.class);
-
-//Find the last Java bean of User type by condition.
-User user4 = db.findLast(User.class, u -> u.age >= 18);
-
-//Find Java beans with unique User type by conditions.
-User user5 = db.findOne(User.class, u -> "liming@gmail.com".equals(u.email));
-
-//Find the Java bean of User type with the specified ID.
-User user6 = db.find(User.class, 1001657291650502656L);
-
-//Find all Java beans of User type.
-List<User> users1 = db.find(User.class);
-
-//Batch find Java beans of User type by ID.
-List<User> users2 = db.find(User.class, id1, id2, id3, id4);
-
-//Batch find Java beans of User type by ID list.
-List<User> users3 = db.find(User.class, Arrays.asList(id1, id2, id3, id4));
-
-//Batch find Java beans of User type by conditions.
-List<User> users4 = db.find(User.class, u -> u.age >= 18);
-
-//Batch find Java beans of User type by conditions.
-//Sort, 1 is asc, and -1 is desc.
-//The number of skipped elements can be set.
-//The number of limit elements can be set.
-List<User> users5 = db.find(User.class, u -> {
-    boolean b1 = u.gender.equals("male");
-    boolean b2 = u.email.contains("@gmail.com");
-    return b1 && b2;
-}, options -> {
-    options.sort("age", 1).skip(3).limit(10);
-});
-
-//The find condition can be null. Only the FindOptions parameter is set.
-List<User> users6 = db.find(User.class, null, options -> {
-    options.sort("age", 1).skip(3).limit(10);
-});
-
-//Find by ID condition. The findWithID method is more suitable than the find method.
-//Not recommended：db.find(User.class, u -> u.id() > 1058754025064759296L);
-List<User> users7 = db.findWithID(User.class, id -> id > 1058754025064759296L);
-
-//Find by ID condition, and set the FindOptions parameter.
-List<User> users8 = db.findWithID(User.class, id -> id > 1058754025064759296L, options -> {
-    options.sort("age", 1).skip(3).limit(10);
-});
-
-//Find by timestamp condition. The findWithTime method is more suitable than the find method.
-//Not recommended：db.find(User.class, u -> u.timestamp() < System.currentTimeMillis());
-List<User> users9 = db.findWithTime(User.class, timestamp -> timestamp < System.currentTimeMillis());
-
-//Find by timestamp condition, and set the FindOptions parameter.
-List<User> users10 = db.findWithTime(User.class, timestamp -> {
-    boolean b1 = QuickIO.toTimestamp(1058754025064759296L) < timestamp;
-    boolean b2 = timestamp < System.currentTimeMillis();
-    return b1 && b2;
-}, options -> {
-    options.sort("age", 1).skip(3).limit(10);
-});
-
-
-
-//Index operation:
-//Find Java beans of type User by index.
-User user = db.findWithIndex(User.class, options -> options.index("email", "liming@gmail.com"));
-
-//Use the index to query whether the Java bean exists.
-boolean b = db.exist(User.class, options -> options.index("email", "liming@gmail.com"));
-
-//To delete the @Index annotation, you also need to use the dropIndex method 
-//to remove the data of the corresponding index field.
-db.dropIndex(User.class, "email");
-
-
-
-//Conut:
-//Count the number of User type data.
-int res1 = db.count(User.class);
-
-//Count the number of User type data by condition.
-int res2 = db.count(User.class, u -> u.age >= 18);
-
-
-
-//Opening of disposable:
-//Equivalent to try-with-catch automatically closes.
-QuickIO.DB.open("sample_db", db -> {
-    //Operation db.
-}, e -> {
-    //Exception handling.
-});
-
-//Open -> return data -> close.
-User user = QuickIO.DB.openGet("sample_db", db -> {
-    return db.findFirst(User.class);
-}, e -> {
-    //Exception handling.
-});
-
-
-
-//Try-with-catch automatically closes.
-try (QuickIO.DB db = new QuickIO.DB("sample_db")) {
-    //do something
-} catch (Exception e) {
-    e.printStackTrace();
+    List<Book> books = collection.findAll();
+    books.forEach(IOEntity::printJson);
 }
-
-//Export db data.
-db.export(s -> {
-    QuickIO.println("Path to export file: " + s);
-}, e -> {
-    QuickIO.println("Exception message: " + e.getMessage());
-});
-
-//Manually close the database file.
-//You can leave it to the JVM without closing it manually.
-db.close();
-
-//Delete database file.
-db.destroy();
 ```
-
-### 2. Store K-V type data.
+Store data of Key-Value type, and support any key and value that can be serialized and deserialized.
 ```java
-//Create QuickIO.KV object and set store directory.
-QuickIO.KV kv = new QuickIO.KV("sample_kv");
+try(KV kv = QuickIO.usingKV("example_kv")) {
+    kv.write("Pi", 3.14d);
+    kv.write(3.14d, "Pi");
 
-
-
-//Save basic type data and infer type by value.
-kv.write("Int", 2022);
-kv.write("Long", 1015653787903332352L);
-kv.write("Float", 3.14f);
-kv.write("Double", 3.141592654d);
-kv.write("Bool", true);
-kv.write("Char", 'c');
-kv.write("String", "Hello world!");
-
-//Read basic type data and infer type by default value.
-int i = kv.read("Int", 0);
-long l = kv.read("Long", 0L);
-float f = kv.read("Float", 0f);
-double d = kv.read("Double", 0d);
-boolean b = kv.read("Bool", false);
-char c = kv.read("Char", '0');
-String s = kv.read("String", "");
-
-//Remove the specified key, true if the removal is successful, false otherwise.
-boolean b1 = kv.remove("Int");
-
-//Query whether the key exists, if it exists, it is true, otherwise it is false.
-boolean b2 = kv.containsKey("Long");
-
-
-
-//Store Java beans.
-//Create object and use the serializable interface.
-public class User implements Serializable {
-    public String name;
-    public Integer age;
-
-    public User(Consumer<User> consumer) {
-        consumer.accept(this);
-    }
+    double d = kv.read("Pi", Double.class);
+    String s = kv.read(3.14d, String.class);
+    QuickIO.println("%s = %f", s, d);
 }
-
-//Save Java beans data.
-kv.write("Li Ming", new User(u -> {
-    u.name = "Li Ming";
-    u.age = 18;
-}));
-
-//Read Java bean data.
-User user = kv.read("Li Ming", User.class);
-if (user != null) {
-    QuickIO.println(user.name + " " + user.age);
-}
-
-
-
-//Opening of disposable:
-//Equivalent to try-with-catch automatically closes.
-QuickIO.KV.open("sample_kv", kv -> {
-    //Operation kv.
-}, e -> {
-    //Exception handling.
-});
-
-//Open -> return data -> close.
-boolean b = QuickIO.KV.openGet("sample_kv", kv -> {
-    return kv.read("Bool", false);
-}, e -> {
-    //Exception handling.
-});
-
-
-
-//Try-with-catch automatically closes.
-try (QuickIO.KV kv = new QuickIO.KV("sample_kv")) {
-    //do something
-} catch (Exception e) {
-    e.printStackTrace();
-}
-
-//Export kv data.
-kv.export(s -> {
-    QuickIO.println("Path to export file: " + s);
-}, e -> {
-    QuickIO.println("Exception message: " + e.getMessage());
-});
-
-//Manually close the database file.
-//You can leave it to the JVM without closing it manually.
-kv.close();
-
-//Delete database file.
-kv.destroy();
 ```
-
-
-### 3. Store file.
+Stores data for file types.
 ```java
-//Create QuickIO.Can object and set store directory.
-QuickIO.Can can = new QuickIO.Can("sample_can");
+try(Tin tin = QuickIO.usingTin("example_tin")) {
+    tin.put("photo.png", new File("..."));
 
-//Save the file to a can and change the file name.
-can.put("test.png", new File("..."));
-
-//Get the specified file from the can.
-File file = can.get("test.png");
-if (file != null) {
-    QuickIO.println(file.getPath());
+    File file = tin.get("photo.png");
+    Optional.ofNullable(file).ifPresent(f -> QuickIO.println(f.getPath()));
 }
-
-//Remove the specified file from the can.
-can.remove("test.png");
-
-//Traverse all files from a can.
-List<File> files = can.list();
-
-//Loop through the files in the can, 
-//return true to continue the loop, 
-//and return false to break the loop.
-can.foreach(file -> {
-    QuickIO.println(file.getName());
-    return true;
-});
-
-//Delete the can.
-can.destroy();
 ```
 
 
-### 4. Widgets.
-```java
-//Get the unique ID and use Twitter's open-source
-//distributed ID generation algorithm (Snowflake).
-//Snowflake ID strongly depends on the machine clock.
-long id = QuickIO.id();
-
-//Get timestamp through Snowflake ID.
-long timestamp = QuickIO.toTimestamp(id);
-
-//Java bean to JSON.
-String json = QuickIO.toJson(new User(u -> {
-    u.name = "LiMing";
-    u.age = 18;
-    u.gender = "male";
-    u.email = "liming@gmail.com";
-}));
-
-//Java beans are printed to the console in JSON format.
-QuickIO.printJson(new User(u -> {
-    u.name = "LiMing";
-    u.age = 18;
-    u.gender = "male";
-    u.email = "liming@gmail.com";
-}));
-
-//Print data to console.
-QuickIO.print("Hello world\n");
-QuickIO.print("%d %f %c %s\n", 1, 3.14f, 'c', "Hello world");
-QuickIO.println("Hello world");
-QuickIO.println("%d %f %c %s", 1, 3.14f, 'c', "Hello world");
-```
-
-### 5. Tips.
-```java
-//Tips 1:
-//Customize parameters of DB, KV and Can.
-//Custom DB parameters.
-QuickIO.DB db = new QuickIO.DB(options -> options
-        .name("sample_db")              //DB name.
-        .basePath("/usr/qio")           //Base directory path of custom DB storage.
-        .cacheSize(16L * 1024 *1024));  //Custom DB cache size, 16MB.
-
-//Custom KV parameters.
-QuickIO.KV kv = new QuickIO.KV(options -> options
-        .name("sample_kv")              //KV name.
-        .basePath("/usr/qio")           //Base directory path of custom KV storage.
-        .cacheSize(16L * 1024 *1024));  //Custom KV cache size, 16MB.
-
-//Custom Can parameters.
-QuickIO.Can can = new QuickIO.Can(options -> options
-        .name("sample_can")              //Can name.
-        .basePath("/usr/qio"));          //Base directory path of custom Can storage.
-
-
-
-//Tips 2:
-//Shared DB and independent DB operations. KV and Can operate similarly.
-//Create shared and independent DB.
-QuickIO.DB sharedDB = new QuickIO.DB("shared_db");
-QuickIO.DB userDB = new QuickIO.DB("user_db");
-QuickIO.DB bookDB = new QuickIO.DB("book_db");
-
-//Shared DB Operation.
-sharedDB.save(new User("Lake", "lake@foxmail.com"));
-sharedDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
-
-//Independent DB operation.
-userDB.save(new User("Lake", "lake@foxmail.com"));
-bookDB.save(new Book("C++ Primer Plus", "Stephen Prata"));
-
-
-
-//Tips 3:
-//Performance optimization when finding data.
-//Assume that the list has a large number of elements.
-List<String> nameList = Arrays.asList("LiMing", "LiHua", "Lake", "Lisa");
-
-//Not recommended:
-List<User> users1 = new ArrayList<>();
-for (String name : nameList) {
-    User user = db.findOne(User.class, u -> name.equals(u.name));
-    if (user != null) {
-        users1.add(user);
-    }
-}
-
-//Recommend:
-Map<String, Boolean> map = nameList.stream().collect(Collectors.toMap(s -> s, b -> true));
-List<User> users2 = db.find(User.class, u -> map.getOrDefault(u.name, false));
-```
-
-
-## Sample
-[Here](https://github.com/artbits/quickio/tree/main/src/test/java/sample)
-
-
-## Thanks
-Open source projects used by QuickIO.
-+ [LevelDB](https://github.com/dain/leveldb)
-+ [Hessian](http://hessian.caucho.com/)
+## Links
++ API Docs (to be written):
+    + DB  - Document storage
+    + KV  - Key-Value storage
+    + Tin - File storage
++ Thanks: 
+    + [LevelDB](https://github.com/dain/leveldb)
+    + [Protostuff](https://github.com/protostuff/protostuff)
 
 
 ## License
