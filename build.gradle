@@ -8,12 +8,12 @@ version '0.0.1'
 
 repositories {
     maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
-    //mavenCentral()
 }
 
 dependencies {
     implementation 'org.iq80.leveldb:leveldb:0.12'
-    implementation 'com.caucho:hessian:4.0.66'
+    implementation 'io.protostuff:protostuff-core:1.8.0'
+    implementation 'io.protostuff:protostuff-runtime:1.8.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }
