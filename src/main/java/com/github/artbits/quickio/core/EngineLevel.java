@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio;
+package com.github.artbits.quickio.core;
 
+import com.github.artbits.quickio.exception.QIOException;
 import org.iq80.leveldb.*;
-import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
@@ -26,36 +26,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-class LevelIO implements AutoCloseable {
+final class EngineLevel implements EngineIO {
 
     private File file;
     private DBFactory factory;
     private DB db;
-    private Runnable closeRunnable;
 
 
-    void open(QuickIO.Options options) {
-        if (options.name == null || options.name.isEmpty()) {
-            throw new RuntimeException("The name cannot be null or empty");
-        } else if (options.name.contains("/")) {
-            throw new RuntimeException("Name cannot contain \"/\"");
+    @Override
+    public EngineIO open(Config config) {
+        if (config.name == null || config.name.isEmpty()) {
+            throw new QIOException(Constants.ILLEGAL_NAME);
+        } else if (config.name.contains("/")) {
+            throw new QIOException(Constants.SPECIAL_CHARACTER_NAME);
         }
-        if (options.cacheSize == null || options.cacheSize <= 0) {
-            options.cacheSize = 100L * 1024 * 1024;
+        if (config.cacheSize == null || config.cacheSize <= 0) {
+            config.cacheSize = 100L * 1024 * 1024;
         }
         try {
-            file = new File(options.basePath + options.name);
+            file = Paths.get(config.path, config.name).toFile();
             factory = new Iq80DBFactory();
-            db = factory.open(file, new Options().createIfMissing(true).cacheSize(options.cacheSize));
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            db = factory.open(file, new Options().createIfMissing(true).cacheSize(config.cacheSize));
+        } catch (IOException e) {
+            throw new QIOException(e);
         }
+        return this;
     }
 
 
@@ -65,14 +64,14 @@ class LevelIO implements AutoCloseable {
             if (db != null) {
                 db.close();
                 db = null;
-                Optional.ofNullable(closeRunnable).ifPresent(Runnable::run);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new QIOException(e);
         }
     }
 
 
+    @Override
     public void destroy() {
         try {
             factory.destroy(file, null);
@@ -83,74 +82,46 @@ class LevelIO implements AutoCloseable {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new QIOException(e);
                 }
             });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new QIOException(e);
         }
     }
 
 
-    void closeListener(Runnable runnable) {
-        this.closeRunnable = runnable;
+    @Override
+    public void put(byte[] key, byte[] value) {
+        db.put(key, value);
     }
 
 
-    void put(byte[] key, byte[] value, Consumer<DBException> consumer) {
-        try {
-            db.put(key, value);
-        } catch (DBException e) {
-            Optional.ofNullable(consumer)
-                    .orElseThrow(() -> new RuntimeException(e))
-                    .accept(e);
-            throw new RuntimeException(e);
-        }
+    @Override
+    public void delete(byte[] key) {
+        db.delete(key);
     }
 
 
-    void put(byte[] key, byte[] value) {
-        put(key, value, null);
+    @Override
+    public byte[] get(byte[] key) {
+        return db.get(key);
     }
 
 
-    byte[] get(byte[] key) {
-        try {
-            return db.get(key);
-        } catch (DBException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    void delete(byte[] key) {
-        try {
-            db.delete(key);
-        } catch (DBException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    void writeBatch(Consumer<WriteBatch> consumer1, Consumer<Exception> consumer2) {
+    @Override
+    public void writeBatch(Consumer<WriteBatch> consumer) {
         try (WriteBatch batch = db.createWriteBatch()) {
-            consumer1.accept(batch);
+            consumer.accept(batch);
             db.write(batch);
-        } catch (Exception e) {
-            Optional.ofNullable(consumer2)
-                    .orElseThrow(() -> new RuntimeException(e))
-                    .accept(e);
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new QIOException(e);
         }
     }
 
 
-    void writeBatch(Consumer<WriteBatch> consumer) {
-        writeBatch(consumer, null);
-    }
-
-
-    void iteration(BiConsumer<byte[], byte[]> consumer) {
+    @Override
+    public void iteration(BiConsumer<byte[], byte[]> consumer) {
         try (DBIterator iterator = db.iterator()) {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
@@ -158,12 +129,13 @@ class LevelIO implements AutoCloseable {
                 consumer.accept(key, value);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new QIOException(e);
         }
     }
 
 
-    <T> T iteration(BiFunction<byte[], byte[], T> function) {
+    @Override
+    public <T> T iteration(BiFunction<byte[], byte[], T> function) {
         try (DBIterator iterator = db.iterator()) {
             for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
@@ -175,7 +147,7 @@ class LevelIO implements AutoCloseable {
             }
             return null;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new QIOException(e);
         }
     }
 

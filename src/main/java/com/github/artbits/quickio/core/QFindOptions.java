@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio;
+package com.github.artbits.quickio.core;
+
+import com.github.artbits.quickio.api.FindOptions;
+import com.github.artbits.quickio.exception.QIOException;
 
 import java.lang.reflect.Field;
 import java.util.Comparator;
@@ -23,9 +26,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class FindOptions<T> {
+final class QFindOptions implements FindOptions {
 
-    private final Class<T> tClass;
     private String sortFieldName;
     private long sortValue;
     private long skipSize;
@@ -35,45 +37,48 @@ public final class FindOptions<T> {
     Object indexValue;
 
 
-    FindOptions(Class<T> tClass) {
-        this.tClass = tClass;
-    }
-
-
+    @Override
     public FindOptions sort(String fieldName, int value) {
-        sortFieldName = Optional.ofNullable((fieldName == null || fieldName.isEmpty()) ? null : fieldName)
-                .orElseThrow(() -> new RuntimeException("The first parameter cannot be null or empty"));
-        sortValue = Optional.ofNullable((value < -1 || value > 1) ? null : value)
-                .orElseThrow(() -> new RuntimeException("The second parameter can only be 1 or -1"));
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new QIOException(Constants.SORTING_FIELD_NAME_ILLEGAL);
+        }
+        if (value < -1 || value > 1) {
+            throw new QIOException(Constants.SORTING_PARAMETER_VALUE_ILLEGAL);
+        }
+        sortFieldName = fieldName;
+        sortValue = value;
         return this;
     }
 
 
+    @Override
     public FindOptions skip(long size) {
         skipSize = size;
         return this;
     }
 
 
+    @Override
     public FindOptions limit(long size) {
         limitSize = size;
         return this;
     }
 
 
+    @Override
     public void index(String fieldName, Object fieldValue) {
         indexName = Optional.ofNullable(fieldName).orElseThrow(NullPointerException::new);
         indexValue = Optional.ofNullable(fieldValue).orElseThrow(NullPointerException::new);
     }
 
 
-    List<T> get(List<T> list) {
+    <T> List<T> get(List<T> list, Class<T> clazz) {
         Stream<T> stream = (list == null || list.isEmpty()) ? null : list.stream();
         if (stream == null) {
             return list;
         }
         if (sortValue != 0) {
-            Comparator<T> comparator = createComparator();
+            Comparator<T> comparator = createComparator(clazz);
             comparator = (sortValue == 1) ? comparator : comparator.reversed();
             stream = stream.parallel().sorted(comparator);
             stream = stream.sequential();
@@ -88,34 +93,34 @@ public final class FindOptions<T> {
     }
 
 
-    private <K> Comparator<K> createComparator() {
-        Field sortField = Tools.getFields(tClass).getOrDefault(sortFieldName, null);
-        Optional.ofNullable(sortField).orElseThrow(() -> new RuntimeException("This field does not exist"));
+    private <K, T> Comparator<K> createComparator(Class<T> clazz) {
+        Field sortField = Utility.getFields(clazz).getOrDefault(sortFieldName, null);
+        Optional.ofNullable(sortField).orElseThrow(() -> new QIOException(Constants.FIELD_DOES_NOT_EXIST));
         switch (sortField.getType().getSimpleName().toLowerCase()) {
             case "byte":
             case "short":
             case "int":
             case "integer":
                 return Comparator.comparingInt(t -> {
-                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Tools.getFieldValue(t, field);
+                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Utility.getFieldValue(t, field);
                     return (int) fieldValue;
                 });
             case "long":
                 return Comparator.comparingLong(t -> {
-                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Tools.getFieldValue(t, field);
+                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Utility.getFieldValue(t, field);
                     return (long) fieldValue;
                 });
             case "float":
             case "double":
                 return Comparator.comparingDouble(t -> {
-                    Field field = Tools.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Tools.getFieldValue(t, field);
+                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
+                    Object fieldValue = Utility.getFieldValue(t, field);
                     return (double) fieldValue;
                 });
             default:
-                throw new RuntimeException("This field does not support sorting");
+                throw new QIOException(Constants.FIELD_DOES_NOT_SUPPORT_SORTING);
         }
     }
 

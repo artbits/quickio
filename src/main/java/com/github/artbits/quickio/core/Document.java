@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio;
+package com.github.artbits.quickio.core;
 
-interface Constants {
-    String DB_PATH = "data/db/";
-    String KV_PATH = "data/kv/";
-    String CAN_PATH = "data/can/";
-    String OUT_DB_PATH = "data/out/db/";
-    String OUT_KV_PATH = "data/out/kv/";
-    String INDEX = "index";
+import java.util.HashMap;
+
+public final class Document extends IOEntity {
+
+    private final HashMap<Object, Object> docs;
+
+
+    public Document() {
+        docs = new HashMap<>();
+    }
+
+
+    public Document put(Object key, Object value) {
+        docs.put(key, value);
+        return this;
+    }
+
+
+    public <K> Object get(K key) {
+        return docs.get(key);
+    }
+
 }
