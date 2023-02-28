@@ -49,6 +49,6 @@ public interface Collection<T extends IOEntity> {
     T findWithIndex(Consumer<FindOptions> consumer);
     boolean exist(Consumer<FindOptions> consumer);
     void dropIndex(String fieldName);
-    int count(Predicate<T> predicate);
-    int count();
+    long count(Predicate<T> predicate);
+    long count();
 }

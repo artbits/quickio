@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -85,7 +86,8 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
         List<T> newLocalTList = new ArrayList<>();
         List<T> oldLocalTList = new ArrayList<>();
         Map<String, Field> tMap = Utility.getFields(t.getClass());
-        tMap.remove("id");
+        tMap.remove("_id");
+        tMap.remove("createdAt");
         engine.iteration((key, value) -> {
             T localT = Codec.decode(value, clazz);
             if (localT != null && predicate.test(localT)) {
@@ -98,7 +100,6 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
                         Utility.setFieldValue(localT, localField, tFieldValue);
                     }
                 });
-                localT.createdAt = Plugin.toTimestamp(localT.objectId());
                 newLocalTList.add(localT);
             }
         });
@@ -339,8 +340,8 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
 
     @Override
-    public int count(Predicate<T> predicate) {
-        AtomicInteger count = new AtomicInteger(0);
+    public long count(Predicate<T> predicate) {
+        AtomicLong count = new AtomicLong(0);
         engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
             if (t != null) {
@@ -355,7 +356,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
 
     @Override
-    public int count() {
+    public long count() {
         return count(null);
     }
 
