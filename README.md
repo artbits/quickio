@@ -6,7 +6,7 @@ English | [中文](README_CN.md)
 
 
 ## QuickIO
-QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, Key-Value and file** type data. Directly use Java code to operate the database, which is simple and efficient.
+QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, key-value and file** type data. Directly use Java code to operate the database, which is simple and efficient.
 
 
 ## Features
@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.0-beta'
+    implementation 'com.github.artbits:quickio:1.3.0'
 }
 ```
 Maven:
@@ -39,7 +39,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.0-beta</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -61,7 +61,7 @@ Custom entity classes are stored according to the data of document type.
 public class Book extends IOEntity {
     public String name;
     public String author;
-    public float price;
+    public Double price;
     
     public static Book of(Consumer<Book> consumer) {
         Book book = new Book();
@@ -77,7 +77,7 @@ try(DB db = QuickIO.usingDB("example_db")) {
     collection.save(Book.of(b -> {
         b.name = "On java 8";
         b.author = "Bruce Eckel";
-        b.price = 129.8f;
+        b.price = 129.8;
     }));
 
     List<Book> books = collection.findAll();
@@ -87,11 +87,11 @@ try(DB db = QuickIO.usingDB("example_db")) {
 Store data of Key-Value type, and support any key and value that can be serialized and deserialized.
 ```java
 try(KV kv = QuickIO.usingKV("example_kv")) {
-    kv.write("Pi", 3.14d);
-    kv.write(3.14d, "Pi");
+    kv.write("Pi", 3.14);
+    kv.write(3.14, "Pi");
 
     double d = kv.read("Pi", Double.class);
-    String s = kv.read(3.14d, String.class);
+    String s = kv.read(3.14, String.class);
     QuickIO.println("%s = %f", s, d);
 }
 ```
@@ -107,10 +107,10 @@ try(Tin tin = QuickIO.usingTin("example_tin")) {
 
 
 ## Links
-+ API Docs (to be written):
-    + DB  - Document storage
-    + KV  - Key-Value storage
-    + Tin - File storage
++ APIs:
+    + [DB  - Document storage](/src/test/java/apis/DBExample.java)
+    + [KV  - Key-Value storage](/src/test/java/apis/KVExample.java)
+    + [Tin - File storage](/src/test/java/apis/TinExample.java)
 + Thanks: 
     + [LevelDB](https://github.com/dain/leveldb)
     + [Protostuff](https://github.com/protostuff/protostuff)
