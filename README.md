@@ -12,7 +12,7 @@ QuickIO is a Java embedded database. The underlying layer is based on the ``Leve
 ## Features
 + Embedded databases like ``SQLite`` do not need to be installed or independent processes.
 + NoSQL databases like ``MongoDB`` or ``Diskv`` are very simple to use.
-+ Support the storage of document, Key-Value and file type data. 
++ Support the storage of document, key-value and file type data. 
 + **Unique index** is supported to meet the requirement of fast query.
 + Simple API, elegant operation using Java Lambda expressions.
 + Fast reading and writing to meet the use scenarios of small and medium-sized data.
@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.0'
+    implementation 'com.github.artbits:quickio:1.3.1'
 }
 ```
 Maven:
@@ -39,7 +39,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 

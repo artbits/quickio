@@ -6,15 +6,15 @@
 
 
 ## QuickIO
-QuickIO 是一个Java嵌入式数据库。底层基于 ``LevelDB`` 引擎和 Java NIO 设计，使用 ``Protostuff`` 序列化/反序列化数据。支持存储 **文档、key-value、文件** 类型的数据。直接使用Java代码操作数据库，简单高效。
+QuickIO 是一个 Java 嵌入式数据库。底层基于 ``LevelDB`` 引擎和 Java NIO 设计，使用 ``Protostuff`` 序列化/反序列化数据。支持存储 **文档、key-value、文件** 类型的数据。直接使用 Java 代码操作数据库，简单高效。
 
 
 ## 特性
 + 像 ``SQLite`` 一样的嵌入式数据库，不需要安装，不需要独立进程。
-+ 像 ``MongoDB`` 或 ``Diskv`` 一样的NoSQL数据库，使用十分简单。
-+ 支持存储文档、Key-Value、文件类型的数据。
++ 像 ``MongoDB`` 或 ``Diskv`` 一样的 NoSQL 数据库，使用十分简单。
++ 支持存储文档、key-value、文件类型的数据。
 + 支持**唯一索引**，以满足快速查询的要求。
-+ 简易的API，使用Java Lambda表达式优雅操作。
++ 简易的 API，使用 Java Lambda 表达式优雅操作。
 + 读写快速，满足中小型数据量的使用场景。
 
 
@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.0'
+    implementation 'com.github.artbits:quickio:1.3.1'
 }
 ```
 Maven:
@@ -39,7 +39,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 
