@@ -26,11 +26,13 @@ public interface Collection<T extends IOEntity> {
     void save(final T t);
     void save(final List<T> list);
     void update(T t , Predicate<T> predicate);
+    void updateWithIndex(T t, Consumer<FindOptions> consumer);
     void delete(long id);
     void delete(long... ids);
     void delete(List<Long> ids);
     void delete(Predicate<T> predicate);
     void deleteAll();
+    void deleteWithIndex(Consumer<FindOptions> consumer);
     List<T> findAll();
     List<T> find(Predicate<T> predicate, Consumer<FindOptions> consumer);
     List<T> find(Predicate<T> predicate);

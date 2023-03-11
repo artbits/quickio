@@ -58,7 +58,7 @@ final class Indexer {
     Indexer(EngineIO engine, String path, String name) {
         this.engine = engine.open(Config.of(c -> c.name(INDEX)
                 .path(path + "/" + name)
-                .cache(10L * 1024 * 1024)));
+                .cache(1024 * 1024L)));
     }
 
 
