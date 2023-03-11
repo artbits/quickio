@@ -45,7 +45,7 @@ final class EngineLevel implements EngineIO {
             throw new QIOException(Constants.SPECIAL_CHARACTER_NAME);
         }
         if (config.cacheSize == null || config.cacheSize <= 0) {
-            config.cacheSize = 100L * 1024 * 1024;
+            config.cacheSize = 10L * 1024 * 1024;
         }
         try {
             file = Paths.get(config.path, config.name).toFile();

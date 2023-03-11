@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -115,6 +114,26 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
 
     @Override
+    public void updateWithIndex(T t, Consumer<FindOptions> consumer) {
+        T localT = findWithIndex(consumer);
+        if (localT != null) {
+            Map<String, Field> localTMap = Utility.getFields(localT.getClass());
+            Map<String, Field> tMap = Utility.getFields(t.getClass());
+            tMap.remove("_id");
+            tMap.remove("createdAt");
+            tMap.forEach((tFieldName, tField) -> {
+                Field localField = localTMap.getOrDefault(tFieldName, null);
+                Object tFieldValue = Utility.getFieldValue(t, tField);
+                if (localField != null && tFieldValue != null) {
+                    Utility.setFieldValue(localT, localField, tFieldValue);
+                }
+            });
+            save(localT);
+        }
+    }
+
+
+    @Override
     public void delete(long id) {
         engine.delete(Codec.encodeKey(id));
         indexer.removeIndex(id);
@@ -159,6 +178,13 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     @Override
     public void deleteAll() {
         delete((Predicate<T>) null);
+    }
+
+
+    @Override
+    public void deleteWithIndex(Consumer<FindOptions> consumer) {
+        T t = findWithIndex(consumer);
+        Optional.ofNullable(t).ifPresent(t1 -> delete(t1.objectId()));
     }
 
 
