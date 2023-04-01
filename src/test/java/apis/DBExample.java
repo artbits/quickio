@@ -156,6 +156,4 @@ final class DBExample {
         collection.deleteAll();
     }
 
-
-
 }
