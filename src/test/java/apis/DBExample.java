@@ -102,8 +102,13 @@ final class DBExample {
     void index() {
         Collection<Book> collection = db.collection(Book.class);
 
+        boolean bool = collection.exist(options -> options.index("isbn", "9787115585011"));
+
         Book book = collection.findWithIndex(options -> options.index("isbn", "9787115585011"));
-        boolean b = collection.exist(options -> options.index("isbn", "9787115585011"));
+
+        collection.updateWithIndex(Book.of(b -> b.price = 159.0), options -> options.index("isbn", "9787115585011"));
+
+        collection.deleteWithIndex(options -> options.index("isbn", "9787115585011"));
 
         //Before removing the index, delete the annotation of the entity class, and then call the method.
         collection.dropIndex("isbn");
@@ -124,10 +129,6 @@ final class DBExample {
         collection.update(Book.of(b -> b.price = 129.8), b -> "9787115585011".equals(b.isbn));
         Book book2 = collection.findFirst();
         book2.printJson();
-
-        collection.updateWithIndex(Book.of(b -> b.price = 159.0), opt -> opt.index("isbn", "9787115585011"));
-        Book book3 = collection.findFirst();
-        book3.printJson();
     }
 
 
@@ -152,7 +153,6 @@ final class DBExample {
         collection.delete(book1.objectId(), book2.objectId());
         collection.delete(Arrays.asList(book1.objectId(), book2.objectId()));
         collection.delete(b -> b.createdAt() < System.currentTimeMillis());
-        collection.deleteWithIndex(opt -> opt.index("isbn", book1.isbn));
         collection.deleteAll();
     }
 
