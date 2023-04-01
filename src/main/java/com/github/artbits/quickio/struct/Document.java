@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.github.artbits.quickio.core;
+package com.github.artbits.quickio.struct;
+
+import com.github.artbits.quickio.core.IOEntity;
 
 import java.util.HashMap;
 
