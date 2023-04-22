@@ -1,12 +1,16 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
-[![](https://img.shields.io/badge/JDK-%3E%3D%208-orange)](https://jdk.java.net/)
-[![](https://img.shields.io/badge/license-Apache--2.0-blue)](#license)
+[![](https://img.shields.io/badge/JDK-8%20%2B-%23DD964D)](https://jdk.java.net/)
+[![](https://img.shields.io/badge/license-Apache--2.0-%234377BF)](#license)
+[![](https://visitor-badge.glitch.me/badge?page_id=artbits.quickio.cn&right_color=%23C482AA&left_text=views)](https://github.com/jwenjian/visitor-badge)
+
+![](https://img.shields.io/github/repo-size/artbits/quickio)
+![](https://img.shields.io/tokei/lines/github/artbits/quickio)
 
 [English](README.md) | 中文
 
 
 ## QuickIO
-QuickIO 是一个 Java 嵌入式数据库。底层基于 ``LevelDB`` 引擎和 Java NIO 设计，使用 ``Protostuff`` 序列化/反序列化数据。支持存储 **文档、key-value、文件** 类型的数据。直接使用 Java 代码操作数据库，简单高效。
+QuickIO 是一个 Java 嵌入式数据库。底层基于 ``LevelDB`` 引擎和 Java NIO 设计，使用 ``Protostuff`` 序列化/反序列化数据。支持存储 **文档、key-value、文件** 类型的数据。直接使用 Java 代码操作数据库，简单，灵活，高效。
 
 
 ## 特性
@@ -26,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.2'
+    implementation 'com.github.artbits:quickio:1.3.3'
 }
 ```
 Maven:
@@ -39,7 +43,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.2</version>
+    <version>1.3.3</version>
 </dependency>
 ```
 
@@ -47,7 +51,7 @@ Maven:
 ## 使用
 存储文档类型的数据。
 ```java
-try(DB db = QuickIO.usingDB("example_db")) {
+try (DB db = QuickIO.usingDB("example_db")) {
     Collection<Document> collection = db.collection(Document.class);
 
     collection.save(new Document().put("city", "Canton").put("area", 7434.4));
@@ -71,7 +75,7 @@ public class Book extends IOEntity {
 }
 
 
-try(DB db = QuickIO.usingDB("example_db")) {
+try (DB db = QuickIO.usingDB("example_db")) {
     Collection<Book> collection = db.collection(Book.class);
 
     collection.save(Book.of(b -> {
@@ -86,7 +90,7 @@ try(DB db = QuickIO.usingDB("example_db")) {
 ```
 存储 Key-Value 类型的数据，支持任意可序列化和反序列化的 key 和 value。
 ```java
-try(KV kv = QuickIO.usingKV("example_kv")) {
+try (KV kv = QuickIO.usingKV("example_kv")) {
     kv.write("Pi", 3.14);
     kv.write(3.14, "Pi");
 
@@ -97,7 +101,7 @@ try(KV kv = QuickIO.usingKV("example_kv")) {
 ```
 存储文件类型的数据。
 ```java
-try(Tin tin = QuickIO.usingTin("example_tin")) {
+try (Tin tin = QuickIO.usingTin("example_tin")) {
     tin.put("photo.png", new File("..."));
 
     File file = tin.get("photo.png");

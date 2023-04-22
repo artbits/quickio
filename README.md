@@ -1,12 +1,16 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
-[![](https://img.shields.io/badge/JDK-%3E%3D%208-orange)](https://jdk.java.net/)
-[![](https://img.shields.io/badge/license-Apache--2.0-blue)](#license)
+[![](https://img.shields.io/badge/JDK-8%20%2B-%23DD964D)](https://jdk.java.net/)
+[![](https://img.shields.io/badge/license-Apache--2.0-%234377BF)](#license)
+[![](https://visitor-badge.glitch.me/badge?page_id=artbits.quickio&right_color=%23C482AA&left_text=views)](https://github.com/jwenjian/visitor-badge)
+
+![](https://img.shields.io/github/repo-size/artbits/quickio)
+![](https://img.shields.io/tokei/lines/github/artbits/quickio)
 
 English | [中文](README_CN.md)
 
 
 ## QuickIO
-QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, key-value and file** type data. Directly use Java code to operate the database, which is simple and efficient.
+QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, key-value and file** type data. Directly using Java code to operate databases is simple, flexible, and efficient.
 
 
 ## Features
@@ -26,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.2'
+    implementation 'com.github.artbits:quickio:1.3.3'
 }
 ```
 Maven:
@@ -39,7 +43,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.2</version>
+    <version>1.3.3</version>
 </dependency>
 ```
 
@@ -47,7 +51,7 @@ Maven:
 ## Usage
 Store data of document type.
 ```java
-try(DB db = QuickIO.usingDB("example_db")) {
+try (DB db = QuickIO.usingDB("example_db")) {
     Collection<Document> collection = db.collection(Document.class);
 
     collection.save(new Document().put("city", "Canton").put("area", 7434.4));
@@ -71,7 +75,7 @@ public class Book extends IOEntity {
 }
 
 
-try(DB db = QuickIO.usingDB("example_db")) {
+try (DB db = QuickIO.usingDB("example_db")) {
     Collection<Book> collection = db.collection(Book.class);
 
     collection.save(Book.of(b -> {
@@ -86,7 +90,7 @@ try(DB db = QuickIO.usingDB("example_db")) {
 ```
 Store data of Key-Value type, and support any key and value that can be serialized and deserialized.
 ```java
-try(KV kv = QuickIO.usingKV("example_kv")) {
+try (KV kv = QuickIO.usingKV("example_kv")) {
     kv.write("Pi", 3.14);
     kv.write(3.14, "Pi");
 
@@ -97,7 +101,7 @@ try(KV kv = QuickIO.usingKV("example_kv")) {
 ```
 Stores data for file types.
 ```java
-try(Tin tin = QuickIO.usingTin("example_tin")) {
+try (Tin tin = QuickIO.usingTin("example_tin")) {
     tin.put("photo.png", new File("..."));
 
     File file = tin.get("photo.png");
