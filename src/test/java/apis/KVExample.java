@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 final class KVExample {
 
-    //A static KV object. When the program runs, the JVM automatically closes the object.
+    //A static KV object. When the program ends running, the JVM automatically closes the object.
     private final static KV kv = QuickIO.usingKV("example_kv");
 
 
@@ -20,7 +20,7 @@ final class KVExample {
             c.cache(16L * 1024 * 1024);         //Set cache size.
         });
 
-        try(KV kv1 = QuickIO.usingKV(config)) {
+        try (KV kv1 = QuickIO.usingKV(config)) {
             //DB operation.
         }
     }
@@ -31,14 +31,30 @@ final class KVExample {
         kv.write("Pi", 3.14);
         kv.write(3.14, "Pi");
 
+
         double d = kv.read("Pi", Double.class);
         String s = kv.read(3.14, String.class);
         String s1 = kv.read(3.1415, "unknown");      //The key does not exist, return the default value.
         QuickIO.println("%s = %f, s1 = %s", s, d, s1);
 
-        kv.erase("Pi");                              //Erase data.
+
+        //Get the type of value
+        String type1 = kv.type("Pi");
+        String type2 = kv.type(3.14);
+        QuickIO.println("type1 = %s, type2 = %s", type1, type2);
+
+
+        //Erase data.
+        kv.erase("Pi");
         boolean b = kv.contains("Pi");
         QuickIO.println(b);
+
+
+        //Rename key
+        kv.write("name", "Lisa");
+        QuickIO.println("name = " + kv.read("name", String.class));
+        kv.rename("name", "username");              //The old key is name, and the new key is username.
+        QuickIO.println("name = %s, username = %s", kv.read("name", String.class), kv.read("username", String.class));
     }
 
 

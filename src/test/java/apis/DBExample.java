@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 final class DBExample {
 
-    //A static DB object. When the program runs, the JVM automatically closes the object.
+    //A static DB object.  When the program ends running, the JVM automatically closes the object.
     private final static DB db = QuickIO.usingDB("example_db");
 
 
@@ -42,7 +42,7 @@ final class DBExample {
             c.cache(16L * 1024 * 1024);         //Set cache size.
         });
 
-        try(DB db1 = QuickIO.usingDB(config)) {
+        try (DB db1 = QuickIO.usingDB(config)) {
             //DB operation.
         }
     }

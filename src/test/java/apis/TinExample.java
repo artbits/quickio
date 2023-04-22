@@ -10,7 +10,7 @@ import java.util.List;
 
 final class TinExample {
 
-    //A static Tin object. When the program runs, the JVM automatically closes the object.
+    //A static Tin object.  When the program ends running, the JVM automatically closes the object.
     private final static Tin tin = QuickIO.usingTin("example_tin");
 
 
@@ -19,10 +19,9 @@ final class TinExample {
         Config config = Config.of(c -> {
             c.name("example_tin");
             c.path("/usr/qio");                 //Custom base path.
-            c.cache(16L * 1024 * 1024);         //Set cache size.
         });
 
-        try(Tin tin1 = QuickIO.usingTin(config)) {
+        try (Tin tin1 = QuickIO.usingTin(config)) {
             //DB operation.
         }
     }
