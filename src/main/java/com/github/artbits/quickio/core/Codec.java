@@ -92,6 +92,19 @@ final class Codec {
     }
 
 
+    static String getClassName(byte[] bytes) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (byte b : bytes) {
+            if (b == 0) {
+                break;
+            } else {
+                stringBuilder.append((char) (int) b);
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+
     private static byte[] getClassNameBytes(Class<?> clazz) {
         byte[] bytes = map.getOrDefault(clazz, null);
         if (bytes == null) {

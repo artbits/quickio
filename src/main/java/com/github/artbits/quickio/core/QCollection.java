@@ -21,10 +21,8 @@ import com.github.artbits.quickio.api.FindOptions;
 import com.github.artbits.quickio.exception.QIOException;
 import org.iq80.leveldb.DBException;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,7 +46,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
     @Override
     public void save(T t) {
-        if (t.objectId() == 0 || Utility.getDigit(t.objectId()) < 18) {
+        if (t.objectId() == 0 || Plugin.getDigit(t.objectId()) < 18) {
             t._id = Plugin.generateId();
             t.createdAt = Plugin.toTimestamp(t.objectId());
         }
@@ -65,7 +63,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     @Override
     public void save(List<T> list) {
         list.forEach(t -> {
-            if (t.objectId() == 0 || Utility.getDigit(t.objectId()) < 18) {
+            if (t.objectId() == 0 || Plugin.getDigit(t.objectId()) < 18) {
                 t._id = Plugin.generateId();
                 t.createdAt = Plugin.toTimestamp(t.objectId());
             }
@@ -84,22 +82,14 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     public void update(T t, Predicate<T> predicate) {
         List<T> newLocalTList = new ArrayList<>();
         List<T> oldLocalTList = new ArrayList<>();
-        Map<String, Field> tMap = Utility.getFields(t.getClass());
-        tMap.remove("_id");
-        tMap.remove("createdAt");
+        ReflectObject<T> tObject = new ReflectObject<>(t);
         engine.iteration((key, value) -> {
             T localT = Codec.decode(value, clazz);
             if (localT != null && predicate.test(localT)) {
                 oldLocalTList.add(Codec.clone(localT, clazz));
-                Map<String, Field> localTMap = Utility.getFields(localT.getClass());
-                tMap.forEach((tFieldName, tField) -> {
-                    Field localField = localTMap.getOrDefault(tFieldName, null);
-                    Object tFieldValue = Utility.getFieldValue(t, tField);
-                    if (localField != null && tFieldValue != null) {
-                        Utility.setFieldValue(localT, localField, tFieldValue);
-                    }
-                });
-                newLocalTList.add(localT);
+                ReflectObject<T> object = new ReflectObject<>(localT);
+                tObject.traverseFields((name, value1) -> Optional.ofNullable(value1).ifPresent(v -> object.setValue(name, v)));
+                newLocalTList.add(object.get());
             }
         });
         indexer.setIndexes(newLocalTList);
@@ -108,7 +98,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
         } catch (Exception e) {
             indexer.removeIndexList(newLocalTList);
             indexer.setIndexes(oldLocalTList);
-            throw new RuntimeException(e);
+            throw new QIOException(e);
         }
     }
 
@@ -117,18 +107,10 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     public void updateWithIndex(T t, Consumer<FindOptions> consumer) {
         T localT = findWithIndex(consumer);
         if (localT != null) {
-            Map<String, Field> localTMap = Utility.getFields(localT.getClass());
-            Map<String, Field> tMap = Utility.getFields(t.getClass());
-            tMap.remove("_id");
-            tMap.remove("createdAt");
-            tMap.forEach((tFieldName, tField) -> {
-                Field localField = localTMap.getOrDefault(tFieldName, null);
-                Object tFieldValue = Utility.getFieldValue(t, tField);
-                if (localField != null && tFieldValue != null) {
-                    Utility.setFieldValue(localT, localField, tFieldValue);
-                }
-            });
-            save(localT);
+            ReflectObject<T> object = new ReflectObject<>(localT);
+            ReflectObject<T> tObject = new ReflectObject<>(t);
+            tObject.traverseFields((name, value) -> Optional.ofNullable(value).ifPresent(v -> object.setValue(name, v)));
+            save(object.get());
         }
     }
 
@@ -208,7 +190,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
                 list.add(t);
             }
         });
-        return (consumer != null) ? options.get(list, clazz) : list;
+        return (consumer != null) ? options.get(list) : list;
     }
 
 
@@ -256,7 +238,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
                 Optional.ofNullable(t).ifPresent(list::add);
             }
         });
-        return (consumer != null) ? options.get(list, clazz) : list;
+        return (consumer != null) ? options.get(list) : list;
     }
 
 

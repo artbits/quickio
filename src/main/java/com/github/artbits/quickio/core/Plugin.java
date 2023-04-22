@@ -16,11 +16,21 @@
 
 package com.github.artbits.quickio.core;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 class Plugin {
 
     private final static Snowflake snowflake = new Snowflake(0, 0);
+
+
+    static int getDigit(long i){
+        i = i > 0 ? i : -i;
+        return i == 0 ? 1 : (int) Math.log10(i) + 1;
+    }
 
 
     public static long generateId() {
@@ -30,6 +40,14 @@ class Plugin {
 
     public static long toTimestamp(long id) {
         return snowflake.toTimestamp(id);
+    }
+
+
+    public static String toDateTime(long timestamp) {
+        return Instant.ofEpochMilli(timestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
 
@@ -72,6 +90,11 @@ class Plugin {
 
     public static <T> T decode(byte[] bytes, Class<T> clazz) {
         return Codec.decode(bytes, clazz);
+    }
+
+
+    public static <T> boolean bool(T value, Predicate<T> predicate) {
+        return value != null && predicate.test(value);
     }
 
 }

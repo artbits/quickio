@@ -17,8 +17,11 @@
 package com.github.artbits.quickio.core;
 
 import com.github.artbits.quickio.api.KV;
+import com.github.artbits.quickio.exception.QIOException;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Optional;
 
 import static com.github.artbits.quickio.core.Constants.KV_PATH;
 
@@ -83,16 +86,41 @@ final class QKV implements KV {
 
 
     @Override
-    public boolean erase(String key) {
+    public <K> boolean erase(K key) {
         engine.delete(Codec.encode(key));
         return true;
     }
 
 
     @Override
-    public boolean contains(String key) {
+    public <K> boolean contains(K key) {
         byte[] bytes = engine.get(Codec.encode(key));
         return bytes != null;
+    }
+
+
+    @Override
+    public <K> void rename(K oldKey, K newKey) {
+        byte[] oldKeyBytes = Codec.encode(oldKey);
+        byte[] newKeyBytes = Codec.encode(newKey);
+        if (Arrays.equals(oldKeyBytes, newKeyBytes)) {
+            return;
+        }
+        if (engine.get(newKeyBytes) != null) {
+            throw new QIOException(Constants.KEY_ALREADY_EXISTS_AND_NOT_AVAILABLE);
+        }
+        byte[] valueBytes = engine.get(oldKeyBytes);
+        Optional.ofNullable(valueBytes).ifPresent(bytes -> engine.writeBatch(batch -> {
+            engine.put(newKeyBytes, valueBytes);
+            engine.delete(oldKeyBytes);
+        }));
+    }
+
+
+    @Override
+    public <K> String type(K key) {
+        byte[] bytes = engine.get(Codec.encode(key));
+        return (bytes != null) ? Codec.getClassName(bytes) : null;
     }
 
 }

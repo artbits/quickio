@@ -20,7 +20,6 @@ import com.github.artbits.quickio.annotations.Index;
 import com.github.artbits.quickio.exception.QIOException;
 import org.iq80.leveldb.WriteBatch;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -110,8 +109,12 @@ final class Indexer {
 
 
     <T extends IOEntity> void setIndexes(List<T> list) {
-        if (list.size() < 1) return;
-        if (Utility.getAnnotationFields(list.get(0)).size() == 0) return;
+        if (list.size() < 1) {
+            return;
+        }
+        if (!new ReflectObject<>(list.get(0)).containsAnnotation(Index.class)) {
+            return;
+        }
         Map<String, Boolean> guardMap = new HashMap<>();
         list.forEach(t -> {
             List<IndexObject> indexObjects = extractIndexObjects(t);
@@ -188,12 +191,19 @@ final class Indexer {
 
 
      long getIndexId(Class<?> tClass, String fieldName, Object filedValue) {
-        inspectIndexField(tClass, fieldName);
-        IndexObject indexObject = new IndexObject(tClass.getSimpleName(), fieldName, filedValue);
-        String key1 = indexObject.toString();
-        byte[] keyBytes1 = Codec.encode(key1);
-        byte[] valueBytes1 = engine.get(keyBytes1);
-        return (valueBytes1 != null) ? Codec.decodeKey(valueBytes1) : 0;
+         try {
+            if (tClass.getDeclaredField(fieldName).isAnnotationPresent(Index.class)) {
+                IndexObject indexObject = new IndexObject(tClass.getSimpleName(), fieldName, filedValue);
+                String key1 = indexObject.toString();
+                byte[] keyBytes1 = Codec.encode(key1);
+                byte[] valueBytes1 = engine.get(keyBytes1);
+                return (valueBytes1 != null) ? Codec.decodeKey(valueBytes1) : 0;
+            } else {
+                throw new QIOException(Constants.NON_INDEXED_FIELD);
+            }
+        } catch (NoSuchFieldException e) {
+            throw new QIOException(Constants.NON_INDEXED_FIELD);
+        }
     }
 
 
@@ -202,25 +212,14 @@ final class Indexer {
     }
 
 
-    private void inspectIndexField(Class<?> clazz, String fieldName) {
-        try {
-            Field field = clazz.getDeclaredField(fieldName);
-            boolean b = field.isAnnotationPresent(Index.class);
-            Optional.ofNullable(b ? b : null).orElseThrow(() -> new RuntimeException("Non indexed field"));
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private <T extends IOEntity> List<IndexObject> extractIndexObjects(T t) throws QIOException {
-        List<IndexObject> indexObjects = new ArrayList<>();
-        List<Field> fields = Utility.getAnnotationFields(t);
+    private <T extends IOEntity> List<IndexObject> extractIndexObjects(T t) {
         String className = t.getClass().getSimpleName();
-        for (Field field : fields) {
-            String fieldName = field.getName();
-            Object fieldValue = Utility.getFieldValue(t, field);
-            if (fieldValue == null) continue;
+        List<IndexObject> indexObjects = new ArrayList<>();
+        ReflectObject<T> reflectObject = new ReflectObject<>(t);
+        reflectObject.traverseAnnotationFields(Index.class, (fieldName, fieldValue) -> {
+            if (fieldValue == null) {
+                return;
+            }
             IndexObject indexObject = new IndexObject(className, fieldName, fieldValue);
             String key1 = indexObject.toString();
             byte[] valueBytes1 = engine.get(Codec.encode(key1));
@@ -231,7 +230,7 @@ final class Indexer {
                 }
             }
             indexObjects.add(indexObject);
-        }
+        });
         return indexObjects;
     }
 

@@ -23,6 +23,8 @@ public interface KV extends AutoCloseable {
     <K, V> void write(K key, V value);
     <K, V> V read(K key, V defaultValue);
     <K, V> V read(K key, Class<V> clazz);
-    boolean erase(String key);
-    boolean contains(String key);
+    <K> boolean erase(K key);
+    <K> boolean contains(K key);
+    <K> void rename(K oldKey, K newKey);
+    <K> String type(K key);
 }

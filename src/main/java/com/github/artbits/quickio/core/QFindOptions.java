@@ -19,7 +19,6 @@ package com.github.artbits.quickio.core;
 import com.github.artbits.quickio.api.FindOptions;
 import com.github.artbits.quickio.exception.QIOException;
 
-import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -72,13 +71,13 @@ final class QFindOptions implements FindOptions {
     }
 
 
-    <T> List<T> get(List<T> list, Class<T> clazz) {
+    <T> List<T> get(List<T> list) {
         Stream<T> stream = (list == null || list.isEmpty()) ? null : list.stream();
         if (stream == null) {
             return list;
         }
         if (sortValue != 0) {
-            Comparator<T> comparator = createComparator(clazz);
+            Comparator<T> comparator = createComparator(list.get(0));
             comparator = (sortValue == 1) ? comparator : comparator.reversed();
             stream = stream.parallel().sorted(comparator);
             stream = stream.sequential();
@@ -93,32 +92,22 @@ final class QFindOptions implements FindOptions {
     }
 
 
-    private <K, T> Comparator<K> createComparator(Class<T> clazz) {
-        Field sortField = Utility.getFields(clazz).getOrDefault(sortFieldName, null);
-        Optional.ofNullable(sortField).orElseThrow(() -> new QIOException(Constants.FIELD_DOES_NOT_EXIST));
-        switch (sortField.getType().getSimpleName().toLowerCase()) {
+    private <K, T> Comparator<K> createComparator(T object) {
+        ReflectObject<T> reflectObject = new ReflectObject<>(object);
+        if (!reflectObject.contains(sortFieldName)) {
+            throw new QIOException(Constants.FIELD_DOES_NOT_EXIST);
+        }
+        switch (reflectObject.getType(sortFieldName).getSimpleName().toLowerCase()) {
             case "byte":
             case "short":
             case "int":
             case "integer":
-                return Comparator.comparingInt(t -> {
-                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Utility.getFieldValue(t, field);
-                    return (int) fieldValue;
-                });
+                return Comparator.comparingInt(t -> (int) new ReflectObject<>(t).getValue(sortFieldName));
             case "long":
-                return Comparator.comparingLong(t -> {
-                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Utility.getFieldValue(t, field);
-                    return (long) fieldValue;
-                });
+                return Comparator.comparingLong(t -> (long) new ReflectObject<>(t).getValue(sortFieldName));
             case "float":
             case "double":
-                return Comparator.comparingDouble(t -> {
-                    Field field = Utility.getFields(t.getClass()).get(sortFieldName);
-                    Object fieldValue = Utility.getFieldValue(t, field);
-                    return (double) fieldValue;
-                });
+                return Comparator.comparingDouble(t -> (double) new ReflectObject<>(t).getValue(sortFieldName));
             default:
                 throw new QIOException(Constants.FIELD_DOES_NOT_SUPPORT_SORTING);
         }
