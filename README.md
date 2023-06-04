@@ -1,23 +1,17 @@
 [![](https://www.jitpack.io/v/artbits/quickio.svg)](https://www.jitpack.io/#artbits/quickio)
 [![](https://img.shields.io/badge/JDK-8%20%2B-%23DD964D)](https://jdk.java.net/)
 [![](https://img.shields.io/badge/license-Apache--2.0-%234377BF)](#license)
-[![](https://visitor-badge.glitch.me/badge?page_id=artbits.quickio&right_color=%23C482AA&left_text=views)](https://github.com/jwenjian/visitor-badge)
-
-![](https://img.shields.io/github/repo-size/artbits/quickio)
-![](https://img.shields.io/tokei/lines/github/artbits/quickio)
-
-English | [中文](README_CN.md)
 
 
 ## QuickIO
-QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of **document, key-value and file** type data. Directly using Java code to operate databases is simple, flexible, and efficient.
+QuickIO is a Java embedded database. The underlying layer is based on the ``LevelDB`` engine and Java NIO design, and uses ``Protostaff`` to serialize/deserialize data. Support the storage of document, key-value and file type data. Directly using Java code to operate databases is simple, flexible, and efficient.
 
 
 ## Features
 + Embedded databases like ``SQLite`` do not need to be installed or independent processes.
 + NoSQL databases like ``MongoDB`` or ``Diskv`` are very simple to use.
 + Support the storage of document, key-value and file type data. 
-+ **Unique index** is supported to meet the requirement of fast query.
++ Unique index is supported to meet the requirement of fast query.
 + Simple API, elegant operation using Java Lambda expressions.
 + Fast reading and writing to meet the use scenarios of small and medium-sized data.
 
@@ -30,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.3'
+    implementation 'com.github.artbits:quickio:1.3.4'
 }
 ```
 Maven:
@@ -43,7 +37,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.3</version>
+    <version>1.3.4</version>
 </dependency>
 ```
 
