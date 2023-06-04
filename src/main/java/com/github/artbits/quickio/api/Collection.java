@@ -53,4 +53,12 @@ public interface Collection<T extends IOEntity> {
     void dropIndex(String fieldName);
     long count(Predicate<T> predicate);
     long count();
+    Double sum(String fieldName, Predicate<T> predicate);
+    Double sum(String fieldName);
+    Double average(String fieldName, Predicate<T> predicate);
+    Double average(String fieldName);
+    Double max(String fieldName, Predicate<T> predicate);
+    Double max(String fieldName);
+    Double min(String fieldName, Predicate<T> predicate);
+    Double min(String fieldName);
 }

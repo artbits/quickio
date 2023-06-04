@@ -22,6 +22,7 @@ import com.github.artbits.quickio.exception.QIOException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
@@ -119,6 +120,25 @@ final class QTin implements Tin {
                  FileChannel outChannel = FileChannel.open(Paths.get(outPath), StandardOpenOption.READ,
                          StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
                 inChannel.transferTo(0, inChannel.size(), outChannel);
+            } catch (IOException e) {
+                throw new QIOException(e);
+            }
+        }
+    }
+
+
+    @Override
+    public void put(String filename, byte[] bytes) {
+        if (!LOCK_FILE_NAME.equals(filename)) {
+            String outPath = path + "/" + filename;
+            try (FileChannel outChannel = FileChannel.open(Paths.get(outPath), StandardOpenOption.READ,
+                    StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+                ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+                buffer.put(bytes);
+                buffer.flip();
+                while (buffer.hasRemaining()) {
+                    outChannel.write(buffer);
+                }
             } catch (IOException e) {
                 throw new QIOException(e);
             }

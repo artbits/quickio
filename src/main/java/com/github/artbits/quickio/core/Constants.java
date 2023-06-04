@@ -31,4 +31,5 @@ final class Constants {
     final static String SORTING_FIELD_NAME_ILLEGAL = "The sort method field name cannot be null or empty";
     final static String SORTING_PARAMETER_VALUE_ILLEGAL = "The sorting parameter value can only be 1 or -1";
     final static String KEY_ALREADY_EXISTS_AND_NOT_AVAILABLE = "The new key already exists and is not available";
+    final static String FIELD_NOT_NUMERICAL_TYPE = "This field is not of numerical type";
 }

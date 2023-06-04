@@ -71,7 +71,7 @@ final class QFindOptions implements FindOptions {
     }
 
 
-    <T> List<T> get(List<T> list) {
+    <T extends IOEntity> List<T> get(List<T> list) {
         Stream<T> stream = (list == null || list.isEmpty()) ? null : list.stream();
         if (stream == null) {
             return list;
@@ -92,7 +92,7 @@ final class QFindOptions implements FindOptions {
     }
 
 
-    private <K, T> Comparator<K> createComparator(T object) {
+    private <K extends IOEntity, T extends IOEntity> Comparator<K> createComparator(T object) {
         ReflectObject<T> reflectObject = new ReflectObject<>(object);
         if (!reflectObject.contains(sortFieldName)) {
             throw new QIOException(Constants.FIELD_DOES_NOT_EXIST);

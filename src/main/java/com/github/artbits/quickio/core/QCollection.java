@@ -19,6 +19,7 @@ package com.github.artbits.quickio.core;
 import com.github.artbits.quickio.api.Collection;
 import com.github.artbits.quickio.api.FindOptions;
 import com.github.artbits.quickio.exception.QIOException;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.iq80.leveldb.DBException;
 
 import java.util.ArrayList;
@@ -366,6 +367,104 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     @Override
     public long count() {
         return count(null);
+    }
+
+
+    @Override
+    public Double sum(String fieldName, Predicate<T> predicate) {
+        AtomicDouble sum = new AtomicDouble(0);
+        engine.iteration((key, value) -> {
+            T t = Codec.decode(value, clazz);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
+                sum.addAndGet(new ReflectObject<>(t).getNumberValue(fieldName));
+            }
+        });
+        return sum.get();
+    }
+
+
+    @Override
+    public Double sum(String fieldName) {
+        return sum(fieldName, null);
+    }
+
+
+    @Override
+    public Double average(String fieldName, Predicate<T> predicate) {
+        AtomicDouble sum = new AtomicDouble(0);
+        AtomicLong count = new AtomicLong(0);
+        engine.iteration((key, value) -> {
+            T t = Codec.decode(value, clazz);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
+                sum.addAndGet(new ReflectObject<>(t).getNumberValue(fieldName));
+                count.incrementAndGet();
+            }
+        });
+        return sum.get() / count.get();
+    }
+
+
+    @Override
+    public Double average(String fieldName) {
+        return average(fieldName, null);
+    }
+
+
+    @Override
+    public Double max(String fieldName, Predicate<T> predicate) {
+       AtomicReference<Double> max = new AtomicReference<>();
+        engine.iteration((key, value) -> {
+            T t = Codec.decode(value, clazz);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
+                if (max.get() == null) {
+                    max.set(new ReflectObject<>(t).getNumberValue(fieldName));
+                } else {
+                    max.set(Math.max(max.get(), new ReflectObject<>(t).getNumberValue(fieldName)));
+                }
+            }
+        });
+        return max.get();
+    }
+
+
+    @Override
+    public Double max(String fieldName) {
+        return max(fieldName, null);
+    }
+
+
+    @Override
+    public Double min(String fieldName, Predicate<T> predicate) {
+        AtomicReference<Double> min = new AtomicReference<>();
+        engine.iteration((key, value) -> {
+            T t = Codec.decode(value, clazz);
+            if (t != null) {
+                if (predicate != null && !predicate.test(t)) {
+                    return;
+                }
+                if (min.get() == null) {
+                    min.set(new ReflectObject<>(t).getNumberValue(fieldName));
+                } else {
+                    min.set(Math.min(min.get(), new ReflectObject<>(t).getNumberValue(fieldName)));
+                }
+            }
+        });
+        return min.get();
+    }
+
+
+    @Override
+    public Double min(String fieldName) {
+        return min(fieldName, null);
     }
 
 }

@@ -16,16 +16,21 @@
 
 package com.github.artbits.quickio.core;
 
+import com.github.artbits.quickio.exception.QIOException;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
-final class ReflectObject<T> {
+final class ReflectObject<T extends IOEntity> {
 
     private final Map<String, Field> fieldMap = new HashMap<>();
     private final T t;
+    private long id;
+    private long createdAt;
 
 
     ReflectObject(T t) {
@@ -34,7 +39,12 @@ final class ReflectObject<T> {
         while (clazz != null){
             for (Field field : clazz.getDeclaredFields()) {
                 field.setAccessible(true);
-                if ("_id".equals(field.getName()) || "createdAt".equals(field.getName())) {
+                if ("_id".equals(field.getName())) {
+                    id = t.objectId();
+                    continue;
+                }
+                if ("createdAt".equals(field.getName())) {
+                    createdAt = t.createdAt();
                     continue;
                 }
                 fieldMap.put(field.getName(), field);
@@ -75,7 +85,6 @@ final class ReflectObject<T> {
 
     boolean containsAnnotation(Class<? extends Annotation> annotationClass) {
         for (Field field : fieldMap.values()) {
-            QuickIO.println(field.getName());
             if (field.isAnnotationPresent(annotationClass)) {
                 return true;
             }
@@ -109,6 +118,26 @@ final class ReflectObject<T> {
     Class<?> getType(String fieldName) {
         Field field = fieldMap.getOrDefault(fieldName, null);
         return field.getType();
+    }
+
+
+    double getNumberValue(String fieldName) {
+        switch (fieldName) {
+            case "_id": return id;
+            case "createdAt": return createdAt;
+        }
+        Object object =  getValue(fieldName);
+        Optional.ofNullable(object).orElseThrow(() -> new QIOException(Constants.FIELD_DOES_NOT_EXIST));
+        switch (getType(fieldName).getSimpleName().toLowerCase()) {
+            case "int":
+            case "integer": return (Integer) getValue(fieldName);
+            case "byte": return (Byte) getValue(fieldName);
+            case "short": return (Short) getValue(fieldName);
+            case "long": return (Long) getValue(fieldName);
+            case "float": return (Float) getValue(fieldName);
+            case "double": return (Double) getValue(fieldName);
+            default: throw new QIOException(Constants.FIELD_NOT_NUMERICAL_TYPE);
+        }
     }
 
 

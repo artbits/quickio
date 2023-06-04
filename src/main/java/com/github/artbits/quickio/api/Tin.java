@@ -25,6 +25,7 @@ public interface Tin extends AutoCloseable {
     void close();
     void destroy();
     void put(String filename, File file);
+    void put(String filename, byte[] bytes);
     File get(String filename);
     void remove(String filename);
     List<File> list();
