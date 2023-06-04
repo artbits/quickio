@@ -32,3 +32,5 @@ build/
 # Folder
 database/
 data/
+out/
+META-INF
