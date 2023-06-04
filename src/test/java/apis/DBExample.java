@@ -138,7 +138,14 @@ final class DBExample {
         Collection<Book> collection = db.collection(Book.class);
         long i1 = collection.count();
         long i2 = collection.count(b -> "Bruce Eckel".equals(b.author));
-        QuickIO.println("i1 = %d, i2 = %d", i1, i2);
+        double d1 = collection.sum("price");
+        double d2 = collection.sum("price", b -> "Bruce Eckel".equals(b.author));
+        double d3 = collection.average("price");
+        double d4 = collection.average("price", b -> "Bruce Eckel".equals(b.author));
+        double d5 = collection.max("price");
+        double d6 = collection.max("price", b -> "Bruce Eckel".equals(b.author));
+        double d7 = collection.min("price");
+        double d8 = collection.min("price", b -> "Bruce Eckel".equals(b.author));
     }
 
 

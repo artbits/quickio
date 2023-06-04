@@ -6,6 +6,9 @@ import com.github.artbits.quickio.core.QuickIO;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 
 final class TinExample {
@@ -28,14 +31,26 @@ final class TinExample {
 
 
     @Test
-    void apis() {
+    void apis() throws IOException {
+        //Storage network file stream.
+        InputStream inputStream = Files.newInputStream(new File("...").toPath());
+        byte[] bytes = new byte[inputStream.available()];
+        inputStream.read(bytes);
+        inputStream.close();
+        tin.put("photo.png", bytes);
+
+
         tin.put("photo.png", new File("..."));
+
 
         File file = tin.get("photo.png");
 
+
         tin.remove("photo.png");
 
+
         List<File> files = tin.list();
+
 
         tin.foreach(f -> {
             QuickIO.println(f.getPath());
