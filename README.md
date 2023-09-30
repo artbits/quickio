@@ -16,6 +16,10 @@ QuickIO is a Java embedded database. The underlying layer is based on the ``Leve
 + Fast reading and writing to meet the use scenarios of small and medium-sized data.
 
 
+## Discover
+[SQLite-Java](https://github.com/artbits/sqlite-java) is a Java ORM for SQLite databases. Written by the author with reference to the ``QuickIO`` project. It is currently in the development stage, welcome to watch.
+
+
 ## Download
 Gradle:
 ```groovy
@@ -45,14 +49,13 @@ Download the Jar file, please click [here](/downloads/).
 ## Usage
 Store data of document type.
 ```java
-try (DB db = QuickIO.usingDB("example_db")) {
-    Collection<Document> collection = db.collection(Document.class);
+DB db = QuickIO.usingDB("example_db")
+Collection<Document> collection = db.collection(Document.class);
 
-    collection.save(new Document().put("city", "Canton").put("area", 7434.4));
+collection.save(new Document().put("city", "Canton").put("area", 7434.4));
 
-    Document document = collection.findOne(d -> "Canton".equals(d.get("city")));
-    Optional.ofNullable(document).ifPresent(IOEntity::printJson);
-}
+Document document = collection.findOne(d -> "Canton".equals(d.get("city")));
+Optional.ofNullable(document).ifPresent(IOEntity::printJson);
 ```
 Custom entity classes are stored according to the data of document type.
 ```java
@@ -69,38 +72,35 @@ public class Book extends IOEntity {
 }
 
 
-try (DB db = QuickIO.usingDB("example_db")) {
-    Collection<Book> collection = db.collection(Book.class);
+DB db = QuickIO.usingDB("example_db")
+Collection<Book> collection = db.collection(Book.class);
 
-    collection.save(Book.of(b -> {
-        b.name = "On java 8";
-        b.author = "Bruce Eckel";
-        b.price = 129.8;
-    }));
+collection.save(Book.of(b -> {
+    b.name = "On java 8";
+    b.author = "Bruce Eckel";
+    b.price = 129.8;
+}));
 
-    List<Book> books = collection.findAll();
-    books.forEach(IOEntity::printJson);
-}
+List<Book> books = collection.findAll();
+books.forEach(IOEntity::printJson);
 ```
 Store data of Key-Value type, and support any key and value that can be serialized and deserialized.
 ```java
-try (KV kv = QuickIO.usingKV("example_kv")) {
-    kv.write("Pi", 3.14);
-    kv.write(3.14, "Pi");
+KV kv = QuickIO.usingKV("example_kv")
+kv.write("Pi", 3.14);
+kv.write(3.14, "Pi");
 
-    double d = kv.read("Pi", Double.class);
-    String s = kv.read(3.14, String.class);
-    QuickIO.println("%s = %f", s, d);
-}
+double d = kv.read("Pi", Double.class);
+String s = kv.read(3.14, String.class);
+QuickIO.println("%s = %f", s, d);
 ```
 Stores data for file types.
 ```java
-try (Tin tin = QuickIO.usingTin("example_tin")) {
-    tin.put("photo.png", new File("..."));
+Tin tin = QuickIO.usingTin("example_tin")
+tin.put("photo.png", new File("..."));
 
-    File file = tin.get("photo.png");
-    Optional.ofNullable(file).ifPresent(f -> QuickIO.println(f.getPath()));
-}
+File file = tin.get("photo.png");
+Optional.ofNullable(file).ifPresent(f -> QuickIO.println(f.getPath()));
 ```
 
 
