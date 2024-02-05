@@ -44,7 +44,7 @@ Maven:
     <version>1.3.5</version>
 </dependency>
 ```
-Download the Jar file, please click [here](/downloads/).
+
 
 ## Usage
 Store data of document type.
