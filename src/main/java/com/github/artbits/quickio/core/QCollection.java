@@ -22,6 +22,7 @@ import com.github.artbits.quickio.exception.QIOException;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.iq80.leveldb.DBException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -319,7 +320,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
     public T findOne(Predicate<T> predicate) {
         return engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
-            return t != null && predicate.test(t) ? t : null;
+            return (t != null && predicate.test(t)) ? t : null;
         });
     }
 
@@ -371,23 +372,23 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
 
     @Override
-    public Double sum(String fieldName, Predicate<T> predicate) {
-        AtomicDouble sum = new AtomicDouble(0);
+    public BigDecimal sum(String fieldName, Predicate<T> predicate) {
+        AtomicReference<BigDecimal> reference = new AtomicReference<>(new BigDecimal(0));
         engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
             if (t != null) {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                sum.addAndGet(new ReflectObject<>(t).getNumberValue(fieldName));
+                reference.set(reference.get().add(new ReflectObject<>(t).getBigDecimalValue(fieldName)));
             }
         });
-        return sum.get();
+        return reference.get();
     }
 
 
     @Override
-    public Double sum(String fieldName) {
+    public BigDecimal sum(String fieldName) {
         return sum(fieldName, null);
     }
 
@@ -402,7 +403,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                sum.addAndGet(new ReflectObject<>(t).getNumberValue(fieldName));
+                sum.addAndGet(new ReflectObject<>(t).getBigDecimalValue(fieldName).doubleValue());
                 count.incrementAndGet();
             }
         });
@@ -417,53 +418,59 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
 
     @Override
-    public Double max(String fieldName, Predicate<T> predicate) {
-       AtomicReference<Double> max = new AtomicReference<>();
+    public BigDecimal max(String fieldName, Predicate<T> predicate) {
+        AtomicReference<BigDecimal> reference = new AtomicReference<>();
         engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
             if (t != null) {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                if (max.get() == null) {
-                    max.set(new ReflectObject<>(t).getNumberValue(fieldName));
+                BigDecimal bigDecimal = new ReflectObject<>(t).getBigDecimalValue(fieldName);
+                if (reference.get() == null) {
+                    reference.set(bigDecimal);
                 } else {
-                    max.set(Math.max(max.get(), new ReflectObject<>(t).getNumberValue(fieldName)));
+                    if (bigDecimal != null && bigDecimal.compareTo(reference.get()) > 0) {
+                        reference.set(bigDecimal);
+                    }
                 }
             }
         });
-        return max.get();
+        return reference.get();
     }
 
 
     @Override
-    public Double max(String fieldName) {
+    public BigDecimal max(String fieldName) {
         return max(fieldName, null);
     }
 
 
     @Override
-    public Double min(String fieldName, Predicate<T> predicate) {
-        AtomicReference<Double> min = new AtomicReference<>();
+    public BigDecimal min(String fieldName, Predicate<T> predicate) {
+        AtomicReference<BigDecimal> reference = new AtomicReference<>();
         engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
             if (t != null) {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                if (min.get() == null) {
-                    min.set(new ReflectObject<>(t).getNumberValue(fieldName));
+                BigDecimal bigDecimal = new ReflectObject<>(t).getBigDecimalValue(fieldName);
+                if (reference.get() == null) {
+                    reference.set(bigDecimal);
                 } else {
-                    min.set(Math.min(min.get(), new ReflectObject<>(t).getNumberValue(fieldName)));
+                    if (bigDecimal != null && bigDecimal.compareTo(reference.get()) < 0) {
+                        reference.set(bigDecimal);
+                    }
                 }
             }
         });
-        return min.get();
+        return reference.get();
     }
 
 
     @Override
-    public Double min(String fieldName) {
+    public BigDecimal min(String fieldName) {
         return min(fieldName, null);
     }
 

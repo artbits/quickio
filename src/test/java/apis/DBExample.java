@@ -138,14 +138,14 @@ final class DBExample {
         Collection<Book> collection = db.collection(Book.class);
         long i1 = collection.count();
         long i2 = collection.count(b -> "Bruce Eckel".equals(b.author));
-        double d1 = collection.sum("price");
-        double d2 = collection.sum("price", b -> "Bruce Eckel".equals(b.author));
+        double d1 = collection.sum("price").doubleValue();
+        double d2 = collection.sum("price", b -> "Bruce Eckel".equals(b.author)).doubleValue();
         double d3 = collection.average("price");
         double d4 = collection.average("price", b -> "Bruce Eckel".equals(b.author));
-        double d5 = collection.max("price");
-        double d6 = collection.max("price", b -> "Bruce Eckel".equals(b.author));
-        double d7 = collection.min("price");
-        double d8 = collection.min("price", b -> "Bruce Eckel".equals(b.author));
+        double d5 = collection.max("price").doubleValue();
+        double d6 = collection.max("price", b -> "Bruce Eckel".equals(b.author)).doubleValue();
+        double d7 = collection.min("price").doubleValue();
+        double d8 = collection.min("price", b -> "Bruce Eckel".equals(b.author)).doubleValue();
     }
 
 

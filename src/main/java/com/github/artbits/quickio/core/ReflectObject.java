@@ -20,6 +20,7 @@ import com.github.artbits.quickio.exception.QIOException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -121,22 +122,26 @@ final class ReflectObject<T extends IOEntity> {
     }
 
 
-    double getNumberValue(String fieldName) {
-        switch (fieldName) {
-            case "_id": return id;
-            case "createdAt": return createdAt;
-        }
-        Object object =  getValue(fieldName);
-        Optional.ofNullable(object).orElseThrow(() -> new QIOException(Constants.FIELD_DOES_NOT_EXIST));
-        switch (getType(fieldName).getSimpleName().toLowerCase()) {
-            case "int":
-            case "integer": return (Integer) getValue(fieldName);
-            case "byte": return (Byte) getValue(fieldName);
-            case "short": return (Short) getValue(fieldName);
-            case "long": return (Long) getValue(fieldName);
-            case "float": return (Float) getValue(fieldName);
-            case "double": return (Double) getValue(fieldName);
-            default: throw new QIOException(Constants.FIELD_NOT_NUMERICAL_TYPE);
+    BigDecimal getBigDecimalValue(String fieldName) {
+        try {
+            switch (fieldName) {
+                case "_id": return BigDecimal.valueOf(id);
+                case "createdAt": return BigDecimal.valueOf(createdAt);
+            }
+            Field field = fieldMap.getOrDefault(fieldName, null);
+            Optional.ofNullable(field).orElseThrow(() -> new QIOException(Constants.FIELD_DOES_NOT_EXIST));
+            switch (field.getType().getSimpleName().toLowerCase()) {
+                case "int":
+                case "integer": return BigDecimal.valueOf((Integer) field.get(t));
+                case "byte": return BigDecimal.valueOf((Byte) field.get(t));
+                case "short": return BigDecimal.valueOf((Short) field.get(t));
+                case "long": return BigDecimal.valueOf((Long) field.get(t));
+                case "float": return BigDecimal.valueOf((Float) field.get(t));
+                case "double": return BigDecimal.valueOf((Double) field.get(t));
+                default: throw new QIOException(Constants.FIELD_NOT_NUMERICAL_TYPE);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 

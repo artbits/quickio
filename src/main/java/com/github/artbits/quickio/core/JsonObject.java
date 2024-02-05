@@ -89,7 +89,7 @@ final class JsonObject {
     public String toString() {
         StringBuilder builder = new StringBuilder().append("{");
         map.forEach((k, v) -> Optional.ofNullable(v).ifPresent(s -> builder.append(k).append(":").append(v).append(",")));
-        return builder.deleteCharAt(builder.length() - 1).append("}").toString();
+        return ((builder.length() > 2) ? builder.deleteCharAt(builder.length() - 1) : builder).append("}").toString();
     }
 
 
@@ -99,7 +99,7 @@ final class JsonObject {
         for (char c : chars) {
             builder.append("\"").append(c).append("\"").append(",");
         }
-        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+        return ((builder.length() > 2) ? builder.deleteCharAt(builder.length() - 1) : builder).append("]").toString();
     }
 
 
@@ -113,7 +113,7 @@ final class JsonObject {
                 builder.append(new JsonObject(o)).append(",");
             });
         }
-        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+        return ((builder.length() > 2) ? builder.deleteCharAt(builder.length() - 1) : builder).append("]").toString();
     }
 
 
@@ -163,7 +163,7 @@ final class JsonObject {
                 });
             });
         });
-        return builder.deleteCharAt(builder.length() - 1).append("]").toString();
+        return ((builder.length() > 2) ? builder.deleteCharAt(builder.length() - 1) : builder).append("]").toString();
     }
 
 
@@ -182,7 +182,7 @@ final class JsonObject {
                 });
             });
         }));
-        return builder.deleteCharAt(builder.length() - 1).append("}").toString();
+        return ((builder.length() > 2) ? builder.deleteCharAt(builder.length() - 1) : builder).append("}").toString();
     }
 
 

@@ -6,6 +6,8 @@ import com.github.artbits.quickio.core.QuickIO;
 import com.github.artbits.quickio.struct.BiMap;
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 final class KVExample {
 
     //A static KV object. When the program ends running, the JVM automatically closes the object.
@@ -55,6 +57,28 @@ final class KVExample {
         QuickIO.println("name = " + kv.read("name", String.class));
         kv.rename("name", "username");              //The old key is name, and the new key is username.
         QuickIO.println("name = %s, username = %s", kv.read("name", String.class), kv.read("username", String.class));
+    }
+
+
+    @Test
+    void foreach_apis() {
+        kv.write("username_Lark", 18);
+        kv.write("username_Lisa", 22);
+        kv.write("username_Amy", 25);
+
+
+        // Query all keys and values of the specified type.
+        kv.foreach(String.class, Integer.class, (k, v) -> {
+            QuickIO.println(k + " = " + v);
+        });
+
+
+        // Query all keys and values of the specified type. Can be interrupted.
+        kv.foreach(String.class, Integer.class, (k, v) -> {
+            QuickIO.println(k + " = " + v);
+            //True is to continue, false is to break.
+            return !Objects.equals("username_Lark", k);
+        });
     }
 
 

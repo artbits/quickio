@@ -18,6 +18,7 @@ package com.github.artbits.quickio.api;
 
 import com.github.artbits.quickio.core.IOEntity;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -53,12 +54,12 @@ public interface Collection<T extends IOEntity> {
     void dropIndex(String fieldName);
     long count(Predicate<T> predicate);
     long count();
-    Double sum(String fieldName, Predicate<T> predicate);
-    Double sum(String fieldName);
+    BigDecimal sum(String fieldName, Predicate<T> predicate);
+    BigDecimal sum(String fieldName);
     Double average(String fieldName, Predicate<T> predicate);
     Double average(String fieldName);
-    Double max(String fieldName, Predicate<T> predicate);
-    Double max(String fieldName);
-    Double min(String fieldName, Predicate<T> predicate);
-    Double min(String fieldName);
+    BigDecimal max(String fieldName, Predicate<T> predicate);
+    BigDecimal max(String fieldName);
+    BigDecimal min(String fieldName, Predicate<T> predicate);
+    BigDecimal min(String fieldName);
 }

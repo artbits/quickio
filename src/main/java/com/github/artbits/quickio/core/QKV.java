@@ -22,6 +22,8 @@ import com.github.artbits.quickio.exception.QIOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import static com.github.artbits.quickio.core.Constants.KV_PATH;
 
@@ -49,6 +51,7 @@ final class QKV implements KV {
     public void close() {
         engine.close();
     }
+
 
     @Override
     public void destroy() {
@@ -82,6 +85,32 @@ final class QKV implements KV {
             return (object != null) ? clazz.cast(object) : null;
         }
         return null;
+    }
+
+
+    @Override
+    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiConsumer<K, V> consumer) {
+        engine.iteration((k, v) -> {
+            K key = Codec.decode(k, kClass);
+            V value = Codec.decode(v, vClass);
+            if (key != null && value != null) {
+                consumer.accept(key, value);
+            }
+        });
+    }
+
+
+    @Override
+    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiFunction<K, V, Boolean> function) {
+        engine.iteration((k, v) -> {
+            K key = Codec.decode(k, kClass);
+            V value = Codec.decode(v, vClass);
+            if (key != null && value != null) {
+                Boolean b = function.apply(key, value);
+                return b ? null : b;
+            }
+            return null;
+        });
     }
 
 
