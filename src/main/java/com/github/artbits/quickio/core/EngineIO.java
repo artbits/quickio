@@ -16,7 +16,7 @@
 
 package com.github.artbits.quickio.core;
 
-import org.iq80.leveldb.WriteBatch;
+import org.iq80.leveldb.api.WriteBatch;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;

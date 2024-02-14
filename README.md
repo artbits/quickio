@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.5'
+    implementation 'com.github.artbits:quickio:1.3.6-beta'
 }
 ```
 Maven:
@@ -41,7 +41,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.5</version>
+    <version>1.3.6-beta</version>
 </dependency>
 ```
 
@@ -111,6 +111,7 @@ Optional.ofNullable(file).ifPresent(f -> QuickIO.println(f.getPath()));
     + [Tin - File storage](/src/test/java/apis/TinExample.java)
 + Thanks: 
     + [LevelDB](https://github.com/dain/leveldb)
+    + [LevelDB-Beta](https://github.com/artbits/leveldb-beta)
     + [Protostuff](https://github.com/protostuff/protostuff)
 
 

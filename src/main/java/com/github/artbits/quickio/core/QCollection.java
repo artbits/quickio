@@ -19,8 +19,7 @@ package com.github.artbits.quickio.core;
 import com.github.artbits.quickio.api.Collection;
 import com.github.artbits.quickio.api.FindOptions;
 import com.github.artbits.quickio.exception.QIOException;
-import com.google.common.util.concurrent.AtomicDouble;
-import org.iq80.leveldb.DBException;
+import org.iq80.leveldb.api.DBException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -395,7 +394,7 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
 
     @Override
     public Double average(String fieldName, Predicate<T> predicate) {
-        AtomicDouble sum = new AtomicDouble(0);
+        AtomicReference<BigDecimal> sum = new AtomicReference<>();
         AtomicLong count = new AtomicLong(0);
         engine.iteration((key, value) -> {
             T t = Codec.decode(value, clazz);
@@ -403,11 +402,15 @@ final class QCollection<T extends IOEntity> implements Collection<T> {
                 if (predicate != null && !predicate.test(t)) {
                     return;
                 }
-                sum.addAndGet(new ReflectObject<>(t).getBigDecimalValue(fieldName).doubleValue());
+                if (sum.get() == null) {
+                    sum.set(new ReflectObject<>(t).getBigDecimalValue(fieldName));
+                } else {
+                    sum.set(sum.get().add(new ReflectObject<>(t).getBigDecimalValue(fieldName)));
+                }
                 count.incrementAndGet();
             }
         });
-        return sum.get() / count.get();
+        return sum.get().doubleValue() / count.get();
     }
 
 

@@ -3,7 +3,6 @@ package apis;
 import com.github.artbits.quickio.api.KV;
 import com.github.artbits.quickio.core.Config;
 import com.github.artbits.quickio.core.QuickIO;
-import com.github.artbits.quickio.struct.BiMap;
 import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
@@ -79,23 +78,6 @@ final class KVExample {
             //True is to continue, false is to break.
             return !Objects.equals("username_Lark", k);
         });
-    }
-
-
-    @Test
-    void bimap_struct() {
-        BiMap citiesMap = new BiMap<Integer, String>()
-                .put(1, "Beijing")
-                .put(2, "Shanghai")
-                .put(3, "Canton")
-                .put(4, "Shenzhen");
-
-        kv.write("cities", citiesMap);
-
-        BiMap<Integer, String> map = kv.read("cities", new BiMap<>());
-        map.forEach((key, value) -> QuickIO.println("%d = %s", key, value));
-
-        QuickIO.println("%d = %s", map.getKey("Beijing"), map.getValue(1));
     }
 
 }

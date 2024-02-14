@@ -17,7 +17,7 @@
 package com.github.artbits.quickio.core;
 
 import com.github.artbits.quickio.exception.QIOException;
-import org.iq80.leveldb.*;
+import org.iq80.leveldb.api.*;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;

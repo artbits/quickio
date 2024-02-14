@@ -18,7 +18,7 @@ package com.github.artbits.quickio.core;
 
 import com.github.artbits.quickio.annotations.Index;
 import com.github.artbits.quickio.exception.QIOException;
-import org.iq80.leveldb.WriteBatch;
+import org.iq80.leveldb.api.WriteBatch;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
