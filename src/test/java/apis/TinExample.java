@@ -1,6 +1,6 @@
 package apis;
 
-import com.github.artbits.quickio.api.Tin;
+import com.github.artbits.quickio.api.JTin;
 import com.github.artbits.quickio.core.Config;
 import com.github.artbits.quickio.core.QuickIO;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import java.util.List;
 final class TinExample {
 
     //A static Tin object.  When the program ends running, the JVM automatically closes the object.
-    private final static Tin tin = QuickIO.usingTin("example_tin");
+    private final static JTin tin = QuickIO.tin("example_tin");
 
 
     @Test
@@ -24,7 +24,7 @@ final class TinExample {
             c.path("/usr/qio");                 //Custom base path.
         });
 
-        try (Tin tin1 = QuickIO.usingTin(config)) {
+        try (JTin tin1 = QuickIO.tin(config)) {
             //DB operation.
         }
     }
@@ -41,6 +41,9 @@ final class TinExample {
 
 
         tin.put("photo.png", new File("..."));
+
+        //Storing files through network URL
+        tin.put("baidu_image.png", "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png");
 
 
         File file = tin.get("photo.png");

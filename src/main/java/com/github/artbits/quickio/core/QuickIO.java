@@ -16,38 +16,38 @@
 
 package com.github.artbits.quickio.core;
 
-import com.github.artbits.quickio.api.DB;
-import com.github.artbits.quickio.api.KV;
-import com.github.artbits.quickio.api.Tin;
+import com.github.artbits.quickio.api.JDB;
+import com.github.artbits.quickio.api.JKV;
+import com.github.artbits.quickio.api.JTin;
 
 public final class QuickIO extends Plugin {
 
-    public static DB usingDB(String name) {
+    public static JDB db(String name) {
         return new QDB(name);
     }
 
 
-    public static DB usingDB(Config config) {
+    public static JDB db(Config config) {
         return new QDB(config);
     }
 
 
-    public static KV usingKV(String name) {
+    public static JKV kv(String name) {
         return new QKV(name);
     }
 
 
-    public static KV usingKV(Config config) {
+    public static JKV kv(Config config) {
         return new QKV(config);
     }
 
 
-    public static Tin usingTin(String name) {
+    public static JTin tin(String name) {
         return new QTin(name);
     }
 
 
-    public static Tin usingTin(Config config) {
+    public static JTin tin(Config config) {
         return new QTin(config);
     }
 

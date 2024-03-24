@@ -16,15 +16,18 @@
 
 package com.github.artbits.quickio.core;
 
-import com.github.artbits.quickio.api.Tin;
+import com.github.artbits.quickio.api.JTin;
 import com.github.artbits.quickio.exception.QIOException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,7 +36,7 @@ import java.util.function.Predicate;
 
 import static com.github.artbits.quickio.core.Constants.TIN_PATH;
 
-final class QTin implements Tin {
+final class QTin implements JTin {
 
     private final String LOCK_FILE_NAME = ".LOCK";
 
@@ -120,6 +123,20 @@ final class QTin implements Tin {
                  FileChannel outChannel = FileChannel.open(Paths.get(outPath), StandardOpenOption.READ,
                          StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
                 inChannel.transferTo(0, inChannel.size(), outChannel);
+            } catch (IOException e) {
+                throw new QIOException(e);
+            }
+        }
+    }
+
+
+    @Override
+    public void put(String filename, String url) {
+        if (!LOCK_FILE_NAME.equals(filename)) {
+            String outPath = path + "/" + filename;
+            try (FileOutputStream stream = new FileOutputStream(outPath); FileChannel fileChannel = stream.getChannel()) {
+                ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
+                fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             } catch (IOException e) {
                 throw new QIOException(e);
             }

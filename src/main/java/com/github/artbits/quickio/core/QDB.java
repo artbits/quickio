@@ -17,13 +17,13 @@
 package com.github.artbits.quickio.core;
 
 import com.github.artbits.quickio.api.Collection;
-import com.github.artbits.quickio.api.DB;
+import com.github.artbits.quickio.api.JDB;
 
 import java.nio.file.Paths;
 
 import static com.github.artbits.quickio.core.Constants.DB_PATH;
 
-final class QDB implements DB {
+final class QDB implements JDB {
 
     private final EngineIO engine;
     private final Indexer indexer;

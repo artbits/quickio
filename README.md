@@ -16,10 +16,6 @@ QuickIO is a Java embedded database. The underlying layer is based on the ``Leve
 + Fast reading and writing to meet the use scenarios of small and medium-sized data.
 
 
-## Discover
-[SQLite-Java](https://github.com/artbits/sqlite-java) is a Java ORM for SQLite databases. Written by the author with reference to the ``QuickIO`` project. It is currently in the development stage, welcome to watch.
-
-
 ## Download
 Gradle:
 ```groovy
@@ -28,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.artbits:quickio:1.3.6-beta'
+    implementation 'com.github.artbits:quickio:1.4.0'
 }
 ```
 Maven:
@@ -41,7 +37,7 @@ Maven:
 <dependency>
     <groupId>com.github.artbits</groupId>
     <artifactId>quickio</artifactId>
-    <version>1.3.6-beta</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -49,7 +45,7 @@ Maven:
 ## Usage
 Store data of document type.
 ```java
-DB db = QuickIO.usingDB("example_db")
+JDB db = QuickIO.db("example_db");
 Collection<Document> collection = db.collection(Document.class);
 
 collection.save(new Document().put("city", "Canton").put("area", 7434.4));
@@ -72,7 +68,7 @@ public class Book extends IOEntity {
 }
 
 
-DB db = QuickIO.usingDB("example_db")
+JDB db = QuickIO.db("example_db");
 Collection<Book> collection = db.collection(Book.class);
 
 collection.save(Book.of(b -> {
@@ -86,17 +82,17 @@ books.forEach(IOEntity::printJson);
 ```
 Store data of Key-Value type, and support any key and value that can be serialized and deserialized.
 ```java
-KV kv = QuickIO.usingKV("example_kv")
-kv.write("Pi", 3.14);
-kv.write(3.14, "Pi");
+JKV kv = QuickIO.kv("example_kv");
+kv.set("Pi", 3.14);
+kv.set(3.14, "Pi");
 
-double d = kv.read("Pi", Double.class);
-String s = kv.read(3.14, String.class);
+double d = kv.get("Pi", Double.class);
+String s = kv.get(3.14, String.class);
 QuickIO.println("%s = %f", s, d);
 ```
 Stores data for file types.
 ```java
-Tin tin = QuickIO.usingTin("example_tin")
+JTin tin = QuickIO.tin("example_tin");
 tin.put("photo.png", new File("..."));
 
 File file = tin.get("photo.png");

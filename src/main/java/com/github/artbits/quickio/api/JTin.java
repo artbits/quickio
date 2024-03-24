@@ -16,11 +16,19 @@
 
 package com.github.artbits.quickio.api;
 
-import com.github.artbits.quickio.core.IOEntity;
+import java.io.File;
+import java.util.List;
+import java.util.function.Predicate;
 
-public interface DB extends AutoCloseable {
+public interface JTin extends AutoCloseable {
     @Override
     void close();
     void destroy();
-    <T extends IOEntity> Collection<T> collection(Class<T> clazz);
+    void put(String filename, File file);
+    void put(String filename, String url);
+    void put(String filename, byte[] bytes);
+    File get(String filename);
+    void remove(String filename);
+    List<File> list();
+    void foreach(Predicate<File> predicate);
 }

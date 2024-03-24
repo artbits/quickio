@@ -2,7 +2,7 @@ package apis;
 
 import com.github.artbits.quickio.annotations.Index;
 import com.github.artbits.quickio.api.Collection;
-import com.github.artbits.quickio.api.DB;
+import com.github.artbits.quickio.api.JDB;
 import com.github.artbits.quickio.core.Config;
 import com.github.artbits.quickio.core.IOEntity;
 import com.github.artbits.quickio.core.QuickIO;
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 final class DBExample {
 
     //A static DB object.  When the program ends running, the JVM automatically closes the object.
-    private final static DB db = QuickIO.usingDB("example_db");
+    private final static JDB db = QuickIO.db("example_db");
 
 
     //Custom Entity Class.
@@ -42,7 +42,7 @@ final class DBExample {
             c.cache(16L * 1024 * 1024);         //Set cache size.
         });
 
-        try (DB db1 = QuickIO.usingDB(config)) {
+        try (JDB db1 = QuickIO.db(config)) {
             //DB operation.
         }
     }

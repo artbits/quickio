@@ -16,7 +16,7 @@
 
 package com.github.artbits.quickio.core;
 
-import com.github.artbits.quickio.api.KV;
+import com.github.artbits.quickio.api.JKV;
 import com.github.artbits.quickio.exception.QIOException;
 
 import java.nio.file.Paths;
@@ -27,7 +27,7 @@ import java.util.function.BiFunction;
 
 import static com.github.artbits.quickio.core.Constants.KV_PATH;
 
-final class QKV implements KV {
+final class QKV implements JKV {
 
     private final EngineIO engine;
 
@@ -60,14 +60,14 @@ final class QKV implements KV {
 
 
     @Override
-    public <K, V> void write(K key, V value) {
+    public <K, V> void set(K key, V value) {
         engine.put(Codec.encode(key), Codec.encode(value));
     }
 
 
     @SuppressWarnings("unchecked")
     @Override
-    public <K, V> V read(K key, V defaultValue) {
+    public <K, V> V get(K key, V defaultValue) {
         byte[] bytes = engine.get(Codec.encode(key));
         if (bytes != null) {
             Object object = Codec.decode(bytes, defaultValue.getClass());
@@ -78,7 +78,7 @@ final class QKV implements KV {
 
 
     @Override
-    public <K, V> V read(K key, Class<V> clazz) {
+    public <K, V> V get(K key, Class<V> clazz) {
         byte[] bytes = engine.get(Codec.encode(key));
         if (bytes != null) {
             Object object = Codec.decode(bytes, clazz);
@@ -89,40 +89,14 @@ final class QKV implements KV {
 
 
     @Override
-    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiConsumer<K, V> consumer) {
-        engine.iteration((k, v) -> {
-            K key = Codec.decode(k, kClass);
-            V value = Codec.decode(v, vClass);
-            if (key != null && value != null) {
-                consumer.accept(key, value);
-            }
-        });
-    }
-
-
-    @Override
-    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiFunction<K, V, Boolean> function) {
-        engine.iteration((k, v) -> {
-            K key = Codec.decode(k, kClass);
-            V value = Codec.decode(v, vClass);
-            if (key != null && value != null) {
-                Boolean b = function.apply(key, value);
-                return b ? null : b;
-            }
-            return null;
-        });
-    }
-
-
-    @Override
-    public <K> boolean erase(K key) {
+    public <K> boolean del(K key) {
         engine.delete(Codec.encode(key));
         return true;
     }
 
 
     @Override
-    public <K> boolean contains(K key) {
+    public <K> boolean exists(K key) {
         byte[] bytes = engine.get(Codec.encode(key));
         return bytes != null;
     }
@@ -150,6 +124,32 @@ final class QKV implements KV {
     public <K> String type(K key) {
         byte[] bytes = engine.get(Codec.encode(key));
         return (bytes != null) ? Codec.getClassName(bytes) : null;
+    }
+
+
+    @Override
+    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiConsumer<K, V> consumer) {
+        engine.iteration((k, v) -> {
+            K key = Codec.decode(k, kClass);
+            V value = Codec.decode(v, vClass);
+            if (key != null && value != null) {
+                consumer.accept(key, value);
+            }
+        });
+    }
+
+
+    @Override
+    public <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiFunction<K, V, Boolean> function) {
+        engine.iteration((k, v) -> {
+            K key = Codec.decode(k, kClass);
+            V value = Codec.decode(v, vClass);
+            if (key != null && value != null) {
+                Boolean b = function.apply(key, value);
+                return b ? null : b;
+            }
+            return null;
+        });
     }
 
 }

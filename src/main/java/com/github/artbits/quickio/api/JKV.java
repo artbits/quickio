@@ -16,18 +16,22 @@
 
 package com.github.artbits.quickio.api;
 
-import java.io.File;
-import java.util.List;
-import java.util.function.Predicate;
+import com.github.artbits.quickio.core.Config;
 
-public interface Tin extends AutoCloseable {
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+
+public interface JKV extends AutoCloseable {
     @Override
     void close();
     void destroy();
-    void put(String filename, File file);
-    void put(String filename, byte[] bytes);
-    File get(String filename);
-    void remove(String filename);
-    List<File> list();
-    void foreach(Predicate<File> predicate);
+    <K, V> void set(K key, V value);
+    <K, V> V get(K key, V defaultValue);
+    <K, V> V get(K key, Class<V> clazz);
+    <K> boolean del(K key);
+    <K> boolean exists(K key);
+    <K> void rename(K oldKey, K newKey);
+    <K> String type(K key);
+    <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiConsumer<K, V> consumer);
+    <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiFunction<K, V, Boolean> function);
 }

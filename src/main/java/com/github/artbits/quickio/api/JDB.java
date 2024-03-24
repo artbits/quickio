@@ -16,20 +16,11 @@
 
 package com.github.artbits.quickio.api;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import com.github.artbits.quickio.core.IOEntity;
 
-public interface KV extends AutoCloseable {
+public interface JDB extends AutoCloseable {
     @Override
     void close();
     void destroy();
-    <K, V> void write(K key, V value);
-    <K, V> V read(K key, V defaultValue);
-    <K, V> V read(K key, Class<V> clazz);
-    <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiConsumer<K, V> consumer);
-    <K, V> void foreach(Class<K> kClass, Class<V> vClass, BiFunction<K, V, Boolean> function);
-    <K> boolean erase(K key);
-    <K> boolean contains(K key);
-    <K> void rename(K oldKey, K newKey);
-    <K> String type(K key);
+    <T extends IOEntity> Collection<T> collection(Class<T> clazz);
 }

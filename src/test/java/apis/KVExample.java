@@ -1,6 +1,6 @@
 package apis;
 
-import com.github.artbits.quickio.api.KV;
+import com.github.artbits.quickio.api.JKV;
 import com.github.artbits.quickio.core.Config;
 import com.github.artbits.quickio.core.QuickIO;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,7 @@ import java.util.Objects;
 final class KVExample {
 
     //A static KV object. When the program ends running, the JVM automatically closes the object.
-    private final static KV kv = QuickIO.usingKV("example_kv");
+    private final static JKV kv = QuickIO.kv("example_kv");
 
 
     @Test
@@ -21,7 +21,7 @@ final class KVExample {
             c.cache(16L * 1024 * 1024);         //Set cache size.
         });
 
-        try (KV kv1 = QuickIO.usingKV(config)) {
+        try (JKV kv1 = QuickIO.kv(config)) {
             //DB operation.
         }
     }
@@ -29,13 +29,13 @@ final class KVExample {
 
     @Test
     void apis() {
-        kv.write("Pi", 3.14);
-        kv.write(3.14, "Pi");
+        kv.set("Pi", 3.14);
+        kv.set(3.14, "Pi");
 
 
-        double d = kv.read("Pi", Double.class);
-        String s = kv.read(3.14, String.class);
-        String s1 = kv.read(3.1415, "unknown");      //The key does not exist, return the default value.
+        double d = kv.get("Pi", Double.class);
+        String s = kv.get(3.14, String.class);
+        String s1 = kv.get(3.1415, "unknown");      //The key does not exist, return the default value.
         QuickIO.println("%s = %f, s1 = %s", s, d, s1);
 
 
@@ -46,24 +46,24 @@ final class KVExample {
 
 
         //Erase data.
-        kv.erase("Pi");
-        boolean b = kv.contains("Pi");
+        kv.del("Pi");
+        boolean b = kv.exists("Pi");
         QuickIO.println(b);
 
 
         //Rename key
-        kv.write("name", "Lisa");
-        QuickIO.println("name = " + kv.read("name", String.class));
+        kv.set("name", "Lisa");
+        QuickIO.println("name = " + kv.get("name", String.class));
         kv.rename("name", "username");              //The old key is name, and the new key is username.
-        QuickIO.println("name = %s, username = %s", kv.read("name", String.class), kv.read("username", String.class));
+        QuickIO.println("name = %s, username = %s", kv.get("name", String.class), kv.get("username", String.class));
     }
 
 
     @Test
     void foreach_apis() {
-        kv.write("username_Lark", 18);
-        kv.write("username_Lisa", 22);
-        kv.write("username_Amy", 25);
+        kv.set("username_Lark", 18);
+        kv.set("username_Lisa", 22);
+        kv.set("username_Amy", 25);
 
 
         // Query all keys and values of the specified type.
