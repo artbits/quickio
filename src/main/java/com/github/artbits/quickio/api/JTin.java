@@ -29,6 +29,7 @@ public interface JTin extends AutoCloseable {
     void put(String filename, byte[] bytes);
     File get(String filename);
     void remove(String filename);
+    void rename(String source, String target);
     List<File> list();
     void foreach(Predicate<File> predicate);
 }

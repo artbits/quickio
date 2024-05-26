@@ -133,12 +133,24 @@ final class QTin implements JTin {
     @Override
     public void put(String filename, String url) {
         if (!LOCK_FILE_NAME.equals(filename)) {
-            String outPath = path + "/" + filename;
+            String tempFilename = filename + ".dat";
+            String outPath = path + "/" + tempFilename;
+            int length = -1;
             try (FileOutputStream stream = new FileOutputStream(outPath); FileChannel fileChannel = stream.getChannel()) {
-                ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
+                URL netUrl = new URL(url);
+                length = netUrl.openConnection().getContentLength();
+                ReadableByteChannel readableByteChannel = Channels.newChannel(netUrl.openStream());
                 fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             } catch (IOException e) {
-                throw new QIOException(e);
+                throw new RuntimeException(e);
+            } finally {
+                File file = get(tempFilename);
+                if (file != null && file.length() == length) {
+                    remove(filename);
+                    rename(tempFilename, filename);
+                } else if (file != null) {
+                    remove(tempFilename);
+                }
             }
         }
     }
@@ -181,6 +193,18 @@ final class QTin implements JTin {
             }
         } catch (NoSuchFileException e) {
 
+        } catch (IOException e) {
+            throw new QIOException(e);
+        }
+    }
+
+
+    @Override
+    public void rename(String source, String target) {
+        try {
+            Path sourcePath = Paths.get(path + "/" + source);
+            Path targetPath = sourcePath.resolveSibling(target);
+            Files.move(sourcePath, targetPath);
         } catch (IOException e) {
             throw new QIOException(e);
         }
