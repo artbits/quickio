@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
 //    implementation 'org.iq80.leveldb:leveldb:0.12'
-    implementation 'com.github.artbits:leveldb-beta:1.0.2'
+    implementation 'com.github.artbits:leveldb-beta:1.0.3'
     implementation 'io.protostuff:protostuff-core:1.8.0'
     implementation 'io.protostuff:protostuff-runtime:1.8.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
